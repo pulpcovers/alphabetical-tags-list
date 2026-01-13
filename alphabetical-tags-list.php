@@ -30,62 +30,49 @@ class Alphabetical_Tags_List {
         }
     }
     
-    /**
-     * Get inline CSS
-     */
-    private function get_inline_css() {
-        return "
-            .atl-container {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-                line-height: 1.6;
-            }
-            .atl-letter-section {
-                margin-bottom: 30px;
-            }
-            .atl-letter-heading {
-                font-size: 28px;
-                font-weight: bold;
-                color: #333;
-                margin-bottom: 15px;
-                padding-bottom: 8px;
-                border-bottom: 3px solid #0073aa;
-            }
-            .atl-tags-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-                gap: 10px;
-                margin-bottom: 20px;
-            }
-            .atl-tag-item {
-                padding: 8px 12px;
-                background: #f7f7f7;
-                border-radius: 4px;
-                transition: background 0.2s;
-            }
-            .atl-tag-item:hover {
-                background: #e8e8e8;
-            }
-            .atl-tag-link {
-                text-decoration: none;
-                color: #0073aa;
-                font-weight: 500;
-            }
-            .atl-tag-link:hover {
-                text-decoration: underline;
-            }
-            .atl-tag-count {
-                color: #666;
-                font-size: 0.9em;
-                margin-left: 5px;
-            }
-            .atl-no-tags {
-                padding: 20px;
-                background: #fff3cd;
-                border-left: 4px solid #ffc107;
-                color: #856404;
-            }
-        ";
-    }
+/**
+ * Get inline CSS
+ */
+private function get_inline_css() {
+    return "
+        .atl-container {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+        .atl-letter-section {
+            margin-bottom: 25px;
+        }
+        .atl-letter-heading {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #0073aa;
+        }
+        .atl-tags-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px 15px;
+            margin-bottom: 15px;
+        }
+        .atl-tag-item {
+            line-height: 1.4;
+        }
+        .atl-tag-count {
+            color: #666;
+            font-size: 0.9em;
+            margin-left: 4px;
+        }
+        .atl-no-tags {
+            padding: 20px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            color: #856404;
+        }
+    ";
+}
     
     /**
      * Render the tags list
