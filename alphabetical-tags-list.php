@@ -1,13 +1,13 @@
 <?php
 /**
- * Plugin Name: Alphabetical Tags List
- * Plugin URI: https://github.com/pulpcovers/alphabetical-tags-list
- * Description: Display all tags alphabetically grouped by first letter using shortcode [alphabetical_tags]
- * Version: 1.0
- * Author: PulpCovers
- * Author URI: https://pulpcovers.com
- * License: CC0 1.0 Universal
- */
+* Plugin Name: Alphabetical Tags List
+* Plugin URI: https://github.com/pulpcovers/alphabetical-tags-list
+* Description: Display all tags alphabetically grouped by first letter using shortcode [alphabetical_tags]
+* Version: 1.0
+* Author: PulpCovers
+* Author URI: https://pulpcovers.com
+* License: CC0 1.0 Universal
+*/
 
 // Prevent direct access
 if (!defined('ABSPATH')) {
@@ -29,50 +29,48 @@ class Alphabetical_Tags_List {
             wp_add_inline_style('wp-block-library', $this->get_inline_css());
         }
     }
-    
-/**
- * Get inline CSS
- */
-private function get_inline_css() {
-    return "
-        .atl-container {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.5;
-            font-size: 14px;
-        }
-        .atl-letter-section {
-            margin-bottom: 25px;
-        }
-        .atl-letter-heading {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 10px;
-            padding-bottom: 5px;
-            border-bottom: 2px solid #0073aa;
-        }
-        .atl-tags-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 8px 15px;
-            margin-bottom: 15px;
-        }
-        .atl-tag-item {
-            line-height: 1.4;
-        }
-        .atl-tag-count {
-            color: #666;
-            font-size: 0.9em;
-            margin-left: 4px;
-        }
-        .atl-no-tags {
-            padding: 20px;
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            color: #856404;
-        }
-    ";
-}
+
+    /**
+     * Get inline CSS (base styles only)
+     */
+    private function get_inline_css() {
+        return "
+            .atl-container {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                line-height: 1.5;
+            }
+            .atl-letter-section {
+                margin-bottom: 25px;
+            }
+            .atl-letter-heading {
+                font-weight: bold;
+                color: #333;
+                margin-bottom: 10px;
+                padding-bottom: 5px;
+                border-bottom: 2px solid #0073aa;
+            }
+            .atl-tags-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 8px 15px;
+                margin-bottom: 15px;
+            }
+            .atl-tag-item {
+                line-height: 1.4;
+            }
+            .atl-tag-count {
+                color: #666;
+                font-size: 0.9em;
+                margin-left: 4px;
+            }
+            .atl-no-tags {
+                padding: 20px;
+                background: #fff3cd;
+                border-left: 4px solid #ffc107;
+                color: #856404;
+            }
+        ";
+    }
     
     /**
      * Render the tags list
@@ -84,6 +82,8 @@ private function get_inline_css() {
             'orderby' => 'name',
             'order' => 'ASC',
             'hide_empty' => true,
+            'heading_size' => '24px',
+            'tag_size' => '14px',
         ), $atts);
         
         // Get all tags
@@ -107,17 +107,21 @@ private function get_inline_css() {
         // Group tags by first letter
         $grouped_tags = $this->group_tags_by_letter($tags);
         
+        // Sanitize size values
+        $heading_size = esc_attr($atts['heading_size']);
+        $tag_size = esc_attr($atts['tag_size']);
+        
         // Build output
         ob_start();
         ?>
-        <div class="atl-container">
+        <div class="atl-container" style="font-size: <?php echo $tag_size; ?>;">
             <?php foreach ($grouped_tags as $letter => $letter_tags): ?>
                 <div class="atl-letter-section">
-                    <h2 class="atl-letter-heading"><?php echo esc_html($letter); ?></h2>
+                    <h2 class="atl-letter-heading" style="font-size: <?php echo $heading_size; ?>;"><?php echo esc_html($letter); ?></h2>
                     <div class="atl-tags-grid">
                         <?php foreach ($letter_tags as $tag): ?>
                             <div class="atl-tag-item">
-                                <a href="<?php echo esc_url(get_tag_link($tag->term_id)); ?>" 
+                                <a href="<?php echo esc_url(get_tag_link($tag->term_id)); ?>"
                                    class="atl-tag-link">
                                     <?php echo esc_html($tag->name); ?>
                                 </a>
