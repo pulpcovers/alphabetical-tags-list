@@ -3,7 +3,7 @@
 * Plugin Name: Alphabetical Tags List
 * Plugin URI: https://github.com/pulpcovers/alphabetical-tags-list
 * Description: Display all tags alphabetically grouped by first letter using shortcode [alphabetical_tags]
-* Version: 1.2
+* Version: 1.3
 * Author: PulpCovers
 * Author URI: https://pulpcovers.com
 * License: CC0 1.0 Universal
@@ -220,7 +220,7 @@ class Alphabetical_Tags_List {
     // Render jump navigation
     private function render_jump_navigation($grouped_tags) {
         $all_letters = array_merge(
-            array('0-9', '#'), // Numbers and symbols first
+            array('0-9', '#'),
             range('A', 'Z')
         );
         
@@ -285,25 +285,21 @@ class Alphabetical_Tags_List {
             
             // Update active link based on scroll position
             function updateActiveLink() {
-                if (isScrolling) return; // Don't update during programmatic scroll
+                if (isScrolling) return;
                 
                 var sections = document.querySelectorAll('.atl-letter-section');
                 var navLinks = document.querySelectorAll('.atl-jump-link:not(.disabled)');
                 
-                // Get the offset for the sticky nav
                 var navHeight = document.querySelector('.atl-jump-nav')?.offsetHeight || 0;
                 var adminBarHeight = 0;
                 
-                // Only include admin bar height on desktop (>782px)
                 if (window.innerWidth > 782) {
                     adminBarHeight = document.querySelector('#wpadminbar')?.offsetHeight || 0;
                 }
                 
                 var offset = navHeight + adminBarHeight + 10;
-                
                 var currentSection = null;
                 
-                // Find which section is currently at the top of the viewport
                 sections.forEach(function(section) {
                     var rect = section.getBoundingClientRect();
                     if (rect.top <= offset && rect.bottom > offset) {
@@ -311,7 +307,6 @@ class Alphabetical_Tags_List {
                     }
                 });
                 
-                // If no section at top, find the closest one above
                 if (!currentSection) {
                     var closestSection = null;
                     var closestDistance = Infinity;
@@ -330,7 +325,6 @@ class Alphabetical_Tags_List {
                     currentSection = closestSection;
                 }
                 
-                // Update active state and remove focus from all links
                 if (currentSection) {
                     var id = currentSection.getAttribute('id');
                     navLinks.forEach(function(link) {
@@ -338,7 +332,7 @@ class Alphabetical_Tags_List {
                             if (!link.classList.contains('active')) {
                                 navLinks.forEach(function(l) {
                                     l.classList.remove('active');
-                                    l.blur(); // Remove focus from all links
+                                    l.blur();
                                 });
                                 link.classList.add('active');
                             }
@@ -347,20 +341,17 @@ class Alphabetical_Tags_List {
                 }
             }
             
-            // Debounced scroll handler
             window.addEventListener('scroll', function() {
                 clearTimeout(scrollTimeout);
                 scrollTimeout = setTimeout(updateActiveLink, 50);
             }, { passive: true });
             
-            // Update on resize (in case crossing 782px breakpoint)
             var resizeTimeout;
             window.addEventListener('resize', function() {
                 clearTimeout(resizeTimeout);
                 resizeTimeout = setTimeout(updateActiveLink, 100);
             });
             
-            // Initial update
             updateActiveLink();
         })();
         </script>
@@ -414,57 +405,113 @@ class Alphabetical_Tags_List {
         return $grouped;
     }
     
-    // Normalize accented characters to ASCII equivalents
+    /**
+     * Normalize accented characters to ASCII equivalents
+     * Multi-strategy approach for consistent cross-platform behavior
+     */
     private function normalize_character($char) {
-        // Try using iconv for transliteration
-        if (function_exists('iconv')) {
-            $normalized = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $char);
-            if ($normalized !== false && $normalized !== '') {
+        // Strategy 1: Try Normalizer class (most reliable, requires intl extension)
+        if (class_exists('Normalizer')) {
+            // Decompose character (é → e + ́)
+            $normalized = Normalizer::normalize($char, Normalizer::FORM_D);
+            // Remove combining diacritical marks
+            $normalized = preg_replace('/\p{Mn}/u', '', $normalized);
+            // If we got a clean ASCII result, use it
+            if ($normalized && preg_match('/^[A-Za-z0-9]$/', $normalized)) {
                 return $normalized;
             }
         }
         
-        // Fallback: Manual character map
+        // Strategy 2: Manual character map (guaranteed consistent)
         $char_map = array(
-            'À' => 'A', 'Á' => 'A', 'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A', 'Å' => 'A', 'Æ' => 'A',
-            'Ç' => 'C',
-            'È' => 'E', 'É' => 'E', 'Ê' => 'E', 'Ë' => 'E',
-            'Ì' => 'I', 'Í' => 'I', 'Î' => 'I', 'Ï' => 'I',
-            'Ñ' => 'N',
-            'Ò' => 'O', 'Ó' => 'O', 'Ô' => 'O', 'Õ' => 'O', 'Ö' => 'O', 'Ø' => 'O',
-            'Ù' => 'U', 'Ú' => 'U', 'Û' => 'U', 'Ü' => 'U',
-            'Ý' => 'Y',
-            'ß' => 'S',
-            'à' => 'a', 'á' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a', 'å' => 'a', 'æ' => 'a',
-            'ç' => 'c',
-            'è' => 'e', 'é' => 'e', 'ê' => 'e', 'ë' => 'e',
-            'ì' => 'i', 'í' => 'i', 'î' => 'i', 'ï' => 'i',
-            'ñ' => 'n',
-            'ò' => 'o', 'ó' => 'o', 'ô' => 'o', 'õ' => 'o', 'ö' => 'o', 'ø' => 'o',
-            'ù' => 'u', 'ú' => 'u', 'û' => 'u', 'ü' => 'u',
-            'ý' => 'y', 'ÿ' => 'y',
-            'Ā' => 'A', 'ā' => 'a', 'Ă' => 'A', 'ă' => 'a', 'Ą' => 'A', 'ą' => 'a',
-            'Ć' => 'C', 'ć' => 'c', 'Ĉ' => 'C', 'ĉ' => 'c', 'Ċ' => 'C', 'ċ' => 'c', 'Č' => 'C', 'č' => 'c',
-            'Ď' => 'D', 'ď' => 'd', 'Đ' => 'D', 'đ' => 'd',
-            'Ē' => 'E', 'ē' => 'e', 'Ĕ' => 'E', 'ĕ' => 'e', 'Ė' => 'E', 'ė' => 'e', 'Ę' => 'E', 'ę' => 'e', 'Ě' => 'E', 'ě' => 'e',
-            'Ĝ' => 'G', 'ĝ' => 'g', 'Ğ' => 'G', 'ğ' => 'g', 'Ġ' => 'G', 'ġ' => 'g', 'Ģ' => 'G', 'ģ' => 'g',
-            'Ĥ' => 'H', 'ĥ' => 'h', 'Ħ' => 'H', 'ħ' => 'h',
-            'Ĩ' => 'I', 'ĩ' => 'i', 'Ī' => 'I', 'ī' => 'i', 'Ĭ' => 'I', 'ĭ' => 'i', 'Į' => 'I', 'į' => 'i', 'İ' => 'I', 'ı' => 'i',
-            'Ĵ' => 'J', 'ĵ' => 'j',
-            'Ķ' => 'K', 'ķ' => 'k',
-            'Ĺ' => 'L', 'ĺ' => 'l', 'Ļ' => 'L', 'ļ' => 'l', 'Ľ' => 'L', 'ľ' => 'l', 'Ŀ' => 'L', 'ŀ' => 'l', 'Ł' => 'L', 'ł' => 'l',
-            'Ń' => 'N', 'ń' => 'n', 'Ņ' => 'N', 'ņ' => 'n', 'Ň' => 'N', 'ň' => 'n',
-            'Ō' => 'O', 'ō' => 'o', 'Ŏ' => 'O', 'ŏ' => 'o', 'Ő' => 'O', 'ő' => 'o', 'Œ' => 'O', 'œ' => 'o',
-            'Ŕ' => 'R', 'ŕ' => 'r', 'Ŗ' => 'R', 'ŗ' => 'r', 'Ř' => 'R', 'ř' => 'r',
-            'Ś' => 'S', 'ś' => 's', 'Ŝ' => 'S', 'ŝ' => 's', 'Ş' => 'S', 'ş' => 's', 'Š' => 'S', 'š' => 's',
-            'Ţ' => 'T', 'ţ' => 't', 'Ť' => 'T', 'ť' => 't', 'Ŧ' => 'T', 'ŧ' => 't',
-            'Ũ' => 'U', 'ũ' => 'u', 'Ū' => 'U', 'ū' => 'u', 'Ŭ' => 'U', 'ŭ' => 'u', 'Ů' => 'U', 'ů' => 'u', 'Ű' => 'U', 'ű' => 'u', 'Ų' => 'U', 'ų' => 'u',
-            'Ŵ' => 'W', 'ŵ' => 'w',
-            'Ŷ' => 'Y', 'ŷ' => 'y', 'Ÿ' => 'Y',
-            'Ź' => 'Z', 'ź' => 'z', 'Ż' => 'Z', 'ż' => 'z', 'Ž' => 'Z', 'ž' => 'z',
+            // Uppercase - Basic Latin with diacritics
+            'À' => 'A', 'Á' => 'A', 'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A', 'Å' => 'A', 'Ā' => 'A', 'Ă' => 'A', 'Ą' => 'A',
+            'Æ' => 'AE',
+            'Ç' => 'C', 'Ć' => 'C', 'Ĉ' => 'C', 'Ċ' => 'C', 'Č' => 'C',
+            'Ď' => 'D', 'Đ' => 'D',
+            'È' => 'E', 'É' => 'E', 'Ê' => 'E', 'Ë' => 'E', 'Ē' => 'E', 'Ĕ' => 'E', 'Ė' => 'E', 'Ę' => 'E', 'Ě' => 'E',
+            'Ĝ' => 'G', 'Ğ' => 'G', 'Ġ' => 'G', 'Ģ' => 'G',
+            'Ĥ' => 'H', 'Ħ' => 'H',
+            'Ì' => 'I', 'Í' => 'I', 'Î' => 'I', 'Ï' => 'I', 'Ĩ' => 'I', 'Ī' => 'I', 'Ĭ' => 'I', 'Į' => 'I', 'İ' => 'I',
+            'Ĵ' => 'J',
+            'Ķ' => 'K',
+            'Ĺ' => 'L', 'Ļ' => 'L', 'Ľ' => 'L', 'Ŀ' => 'L', 'Ł' => 'L',
+            'Ñ' => 'N', 'Ń' => 'N', 'Ņ' => 'N', 'Ň' => 'N',
+            'Ò' => 'O', 'Ó' => 'O', 'Ô' => 'O', 'Õ' => 'O', 'Ö' => 'O', 'Ø' => 'O', 'Ō' => 'O', 'Ŏ' => 'O', 'Ő' => 'O',
+            'Œ' => 'OE',
+            'Ŕ' => 'R', 'Ŗ' => 'R', 'Ř' => 'R',
+            'Ś' => 'S', 'Ŝ' => 'S', 'Ş' => 'S', 'Š' => 'S',
+            'ẞ' => 'SS', 'ß' => 'SS',
+            'Ţ' => 'T', 'Ť' => 'T', 'Ŧ' => 'T',
+            'Ù' => 'U', 'Ú' => 'U', 'Û' => 'U', 'Ü' => 'U', 'Ũ' => 'U', 'Ū' => 'U', 'Ŭ' => 'U', 'Ů' => 'U', 'Ű' => 'U', 'Ų' => 'U',
+            'Ŵ' => 'W',
+            'Ý' => 'Y', 'Ÿ' => 'Y', 'Ŷ' => 'Y',
+            'Ź' => 'Z', 'Ż' => 'Z', 'Ž' => 'Z',
+            
+            // Lowercase - Basic Latin with diacritics
+            'à' => 'a', 'á' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a', 'å' => 'a', 'ā' => 'a', 'ă' => 'a', 'ą' => 'a',
+            'æ' => 'ae',
+            'ç' => 'c', 'ć' => 'c', 'ĉ' => 'c', 'ċ' => 'c', 'č' => 'c',
+            'ď' => 'd', 'đ' => 'd',
+            'è' => 'e', 'é' => 'e', 'ê' => 'e', 'ë' => 'e', 'ē' => 'e', 'ĕ' => 'e', 'ė' => 'e', 'ę' => 'e', 'ě' => 'e',
+            'ĝ' => 'g', 'ğ' => 'g', 'ġ' => 'g', 'ģ' => 'g',
+            'ĥ' => 'h', 'ħ' => 'h',
+            'ì' => 'i', 'í' => 'i', 'î' => 'i', 'ï' => 'i', 'ĩ' => 'i', 'ī' => 'i', 'ĭ' => 'i', 'į' => 'i', 'ı' => 'i',
+            'ĵ' => 'j',
+            'ķ' => 'k',
+            'ĺ' => 'l', 'ļ' => 'l', 'ľ' => 'l', 'ŀ' => 'l', 'ł' => 'l',
+            'ñ' => 'n', 'ń' => 'n', 'ņ' => 'n', 'ň' => 'n',
+            'ò' => 'o', 'ó' => 'o', 'ô' => 'o', 'õ' => 'o', 'ö' => 'o', 'ø' => 'o', 'ō' => 'o', 'ŏ' => 'o', 'ő' => 'o',
+            'œ' => 'oe',
+            'ŕ' => 'r', 'ŗ' => 'r', 'ř' => 'r',
+            'ś' => 's', 'ŝ' => 's', 'ş' => 's', 'š' => 's',
+            'ţ' => 't', 'ť' => 't', 'ŧ' => 't',
+            'ù' => 'u', 'ú' => 'u', 'û' => 'u', 'ü' => 'u', 'ũ' => 'u', 'ū' => 'u', 'ŭ' => 'u', 'ů' => 'u', 'ű' => 'u', 'ų' => 'u',
+            'ŵ' => 'w',
+            'ý' => 'y', 'ÿ' => 'y', 'ŷ' => 'y',
+            'ź' => 'z', 'ż' => 'z', 'ž' => 'z',
+            
+            // Cyrillic (basic)
+            'А' => 'A', 'Б' => 'B', 'В' => 'V', 'Г' => 'G', 'Д' => 'D', 'Е' => 'E', 'Ё' => 'E',
+            'Ж' => 'ZH', 'З' => 'Z', 'И' => 'I', 'Й' => 'J', 'К' => 'K', 'Л' => 'L', 'М' => 'M',
+            'Н' => 'N', 'О' => 'O', 'П' => 'P', 'Р' => 'R', 'С' => 'S', 'Т' => 'T', 'У' => 'U',
+            'Ф' => 'F', 'Х' => 'H', 'Ц' => 'C', 'Ч' => 'CH', 'Ш' => 'SH', 'Щ' => 'SCH',
+            'Ъ' => '', 'Ы' => 'Y', 'Ь' => '', 'Э' => 'E', 'Ю' => 'YU', 'Я' => 'YA',
+            'а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'g', 'д' => 'd', 'е' => 'e', 'ё' => 'e',
+            'ж' => 'zh', 'з' => 'z', 'и' => 'i', 'й' => 'j', 'к' => 'k', 'л' => 'l', 'м' => 'm',
+            'н' => 'n', 'о' => 'o', 'п' => 'p', 'р' => 'r', 'с' => 's', 'т' => 't', 'у' => 'u',
+            'ф' => 'f', 'х' => 'h', 'ц' => 'c', 'ч' => 'ch', 'ш' => 'sh', 'щ' => 'sch',
+            'ъ' => '', 'ы' => 'y', 'ь' => '', 'э' => 'e', 'ю' => 'yu', 'я' => 'ya',
+            
+            // Greek (basic)
+            'Α' => 'A', 'Β' => 'B', 'Γ' => 'G', 'Δ' => 'D', 'Ε' => 'E', 'Ζ' => 'Z', 'Η' => 'H',
+            'Θ' => 'TH', 'Ι' => 'I', 'Κ' => 'K', 'Λ' => 'L', 'Μ' => 'M', 'Ν' => 'N', 'Ξ' => 'X',
+            'Ο' => 'O', 'Π' => 'P', 'Ρ' => 'R', 'Σ' => 'S', 'Τ' => 'T', 'Υ' => 'Y', 'Φ' => 'PH',
+            'Χ' => 'CH', 'Ψ' => 'PS', 'Ω' => 'O',
+            'α' => 'a', 'β' => 'b', 'γ' => 'g', 'δ' => 'd', 'ε' => 'e', 'ζ' => 'z', 'η' => 'h',
+            'θ' => 'th', 'ι' => 'i', 'κ' => 'k', 'λ' => 'l', 'μ' => 'm', 'ν' => 'n', 'ξ' => 'x',
+            'ο' => 'o', 'π' => 'p', 'ρ' => 'r', 'σ' => 's', 'ς' => 's', 'τ' => 't', 'υ' => 'y',
+            'φ' => 'ph', 'χ' => 'ch', 'ψ' => 'ps', 'ω' => 'o',
         );
         
-        return isset($char_map[$char]) ? $char_map[$char] : $char;
+        if (isset($char_map[$char])) {
+            return $char_map[$char];
+        }
+        
+        // Strategy 3: iconv as last resort (may be inconsistent)
+        if (function_exists('iconv')) {
+            $normalized = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $char);
+            if ($normalized !== false && $normalized !== '' && $normalized !== '?') {
+                // Clean up iconv artifacts
+                $normalized = str_replace(array("'", '"', '`', '^', '~'), '', $normalized);
+                if ($normalized && preg_match('/^[A-Za-z0-9]+$/', $normalized)) {
+                    return $normalized;
+                }
+            }
+        }
+        
+        // If all else fails, return original character
+        return $char;
     }
 }
 
