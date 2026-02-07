@@ -3,7 +3,7 @@
 * Plugin Name: Alphabetical Tags List
 * Plugin URI: https://github.com/pulpcovers/alphabetical-tags-list
 * Description: Display all tags alphabetically grouped by first letter using shortcode [alphabetical_tags]
-* Version: 1.0
+* Version: 1.1
 * Author: PulpCovers
 * Author URI: https://pulpcovers.com
 * License: CC0 1.0 Universal
@@ -15,24 +15,19 @@ if (!defined('ABSPATH')) {
 }
 
 class Alphabetical_Tags_List {
-    
     public function __construct() {
         add_shortcode('alphabetical_tags', array($this, 'render_tags_list'));
         add_action('wp_enqueue_scripts', array($this, 'enqueue_styles'));
     }
     
-    /**
-     * Enqueue plugin styles
-     */
+    // Enqueue plugin styles
     public function enqueue_styles() {
         if (has_shortcode(get_post()->post_content ?? '', 'alphabetical_tags')) {
             wp_add_inline_style('wp-block-library', $this->get_inline_css());
         }
     }
-
-    /**
-     * Get inline CSS (base styles only)
-     */
+    
+     // Get inline CSS (base styles only)
     private function get_inline_css() {
         return "
             .atl-container {
@@ -72,9 +67,7 @@ class Alphabetical_Tags_List {
         ";
     }
     
-    /**
-     * Render the tags list
-     */
+    // Render the tags list
     public function render_tags_list($atts) {
         // Parse shortcode attributes
         $atts = shortcode_atts(array(
@@ -111,35 +104,34 @@ class Alphabetical_Tags_List {
         $heading_size = esc_attr($atts['heading_size']);
         $tag_size = esc_attr($atts['tag_size']);
         
-        // Build output
-        ob_start();
-        ?>
-        <div class="atl-container" style="font-size: <?php echo $tag_size; ?>;">
-            <?php foreach ($grouped_tags as $letter => $letter_tags): ?>
-                <div class="atl-letter-section">
-                    <h2 class="atl-letter-heading" style="font-size: <?php echo $heading_size; ?>;"><?php echo esc_html($letter); ?></h2>
-                    <div class="atl-tags-grid">
-                        <?php foreach ($letter_tags as $tag): ?>
-                            <div class="atl-tag-item">
-                                <a href="<?php echo esc_url(get_tag_link($tag->term_id)); ?>"
-                                   class="atl-tag-link">
-                                    <?php echo esc_html($tag->name); ?>
-                                </a>
-                                <span class="atl-tag-count">(<?php echo esc_html($tag->count); ?>)</span>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-        <?php
+        // Build output using array (OPTIMIZED)
+        $output = array();
+        $output[] = '<div class="atl-container" style="font-size: ' . $tag_size . ';">';
         
-        return ob_get_clean();
+        foreach ($grouped_tags as $letter => $letter_tags) {
+            $output[] = '<div class="atl-letter-section">';
+            $output[] = '<h2 class="atl-letter-heading" style="font-size: ' . $heading_size . ';">' . esc_html($letter) . '</h2>';
+            $output[] = '<div class="atl-tags-grid">';
+            
+            foreach ($letter_tags as $tag) {
+                $output[] = '<div class="atl-tag-item">';
+                $output[] = '<a href="' . esc_url(get_tag_link($tag->term_id)) . '" class="atl-tag-link">';
+                $output[] = esc_html($tag->name);
+                $output[] = '</a>';
+                $output[] = '<span class="atl-tag-count">(' . esc_html($tag->count) . ')</span>';
+                $output[] = '</div>';
+            }
+            
+            $output[] = '</div>'; // close atl-tags-grid
+            $output[] = '</div>'; // close atl-letter-section
+        }
+        
+        $output[] = '</div>'; // close atl-container
+        
+        return implode('', $output);
     }
     
-    /**
-     * Group tags by first letter
-     */
+    // Group tags by first letter
     private function group_tags_by_letter($tags) {
         $grouped = array();
         
@@ -188,9 +180,7 @@ class Alphabetical_Tags_List {
         return $grouped;
     }
     
-    /**
-     * Normalize accented characters to ASCII equivalents
-     */
+    // Normalize accented characters to ASCII equivalents
     private function normalize_character($char) {
         // Try using iconv for transliteration (most comprehensive)
         if (function_exists('iconv')) {
