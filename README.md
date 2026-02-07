@@ -29,8 +29,8 @@ A lightweight WordPress plugin that displays all your blog tags in an organized,
 Simply add the shortcode to any page or post:
 
 [alphabetical_tags]
-### Shortcode Options
 
+### Shortcode Options
 | Attribute | Default | Description | Example Values |
 |-----------|---------|-------------|----------------|
 | `min_count` | `1` | Minimum number of posts required for a tag to display | `1`, `5`, `10` |
@@ -39,6 +39,7 @@ Simply add the shortcode to any page or post:
 | `hide_empty` | `true` | Whether to hide tags with no posts | `true`, `false` |
 | `heading_size` | `24px` | Font size for letter headings (A, B, C, etc.) | `20px`, `1.5em`, `2rem` |
 | `tag_size` | `14px` | Font size for tag names | `12px`, `0.875rem`, `16px` |
+| `show_jump_nav` | `true` | Whether to display the sticky jump-to-letter navigation | `true`, `false` |
 
 ## Examples
 
