@@ -3,7 +3,7 @@
 * Plugin Name: Alphabetical Tags List
 * Plugin URI: https://github.com/pulpcovers/alphabetical-tags-list
 * Description: Display all tags alphabetically grouped by first letter using shortcode [alphabetical_tags]
-* Version: 1.1
+* Version: 1.2
 * Author: PulpCovers
 * Author URI: https://pulpcovers.com
 * License: CC0 1.0 Universal
@@ -27,15 +27,66 @@ class Alphabetical_Tags_List {
         }
     }
     
-     // Get inline CSS (base styles only)
+    // Get inline CSS (base styles only)
     private function get_inline_css() {
+        // Adjust top position based on admin bar (desktop only)
+        $admin_bar_height = is_admin_bar_showing() ? '32px' : '0px';
+        $scroll_margin = is_admin_bar_showing() ? '140px' : '100px';
+        
         return "
             .atl-container {
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
                 line-height: 1.5;
             }
+            .atl-jump-nav {
+                position: sticky;
+                top: {$admin_bar_height};
+                background: #fff;
+                padding: 15px 0;
+                margin-bottom: 30px;
+                border-bottom: 2px solid #0073aa;
+                z-index: 100;
+            }
+            .atl-jump-nav-inner {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px 12px;
+                justify-content: center;
+                align-items: center;
+            }
+            .atl-jump-link {
+                display: inline-block;
+                padding: 6px 10px;
+                text-decoration: none;
+                color: #333;
+                font-weight: bold;
+                font-size: 14px;
+                border-radius: 4px;
+                transition: all 0.2s ease;
+                min-width: 32px;
+                text-align: center;
+            }
+            .atl-jump-link:hover {
+                background: #0073aa;
+                color: #fff;
+                transform: translateY(-1px);
+            }
+            .atl-jump-link.active {
+                background: #0073aa;
+                color: #fff;
+            }
+            .atl-jump-link:focus {
+                outline: none;
+            }
+            .atl-jump-link.disabled {
+                color: #ccc;
+                cursor: not-allowed;
+                pointer-events: none;
+                font-weight: bold;
+            }
             .atl-letter-section {
                 margin-bottom: 25px;
+                scroll-margin-top: {$scroll_margin};
             }
             .atl-letter-heading {
                 font-weight: bold;
@@ -64,6 +115,27 @@ class Alphabetical_Tags_List {
                 border-left: 4px solid #ffc107;
                 color: #856404;
             }
+            @media (max-width: 782px) {
+                .atl-jump-nav {
+                    top: 0;
+                }
+                .atl-letter-section {
+                    scroll-margin-top: 100px;
+                }
+            }
+            @media (max-width: 768px) {
+                .atl-jump-nav {
+                    padding: 10px 0;
+                }
+                .atl-jump-nav-inner {
+                    gap: 6px 8px;
+                }
+                .atl-jump-link {
+                    padding: 4px 8px;
+                    font-size: 13px;
+                    min-width: 28px;
+                }
+            }
         ";
     }
     
@@ -77,6 +149,7 @@ class Alphabetical_Tags_List {
             'hide_empty' => true,
             'heading_size' => '24px',
             'tag_size' => '14px',
+            'show_jump_nav' => true,
         ), $atts);
         
         // Get all tags
@@ -103,13 +176,21 @@ class Alphabetical_Tags_List {
         // Sanitize size values
         $heading_size = esc_attr($atts['heading_size']);
         $tag_size = esc_attr($atts['tag_size']);
+        $show_jump_nav = filter_var($atts['show_jump_nav'], FILTER_VALIDATE_BOOLEAN);
         
-        // Build output using array (OPTIMIZED)
+        // Build output using array
         $output = array();
+        
+        // Add jump navigation if enabled
+        if ($show_jump_nav) {
+            $output[] = $this->render_jump_navigation($grouped_tags);
+        }
+        
         $output[] = '<div class="atl-container" style="font-size: ' . $tag_size . ';">';
         
         foreach ($grouped_tags as $letter => $letter_tags) {
-            $output[] = '<div class="atl-letter-section">';
+            $letter_id = $this->get_letter_id($letter);
+            $output[] = '<div class="atl-letter-section" id="' . esc_attr($letter_id) . '">';
             $output[] = '<h2 class="atl-letter-heading" style="font-size: ' . $heading_size . ';">' . esc_html($letter) . '</h2>';
             $output[] = '<div class="atl-tags-grid">';
             
@@ -122,13 +203,179 @@ class Alphabetical_Tags_List {
                 $output[] = '</div>';
             }
             
-            $output[] = '</div>'; // close atl-tags-grid
-            $output[] = '</div>'; // close atl-letter-section
+            $output[] = '</div>';
+            $output[] = '</div>';
         }
         
-        $output[] = '</div>'; // close atl-container
+        $output[] = '</div>';
+        
+        // Add smooth scroll JavaScript
+        if ($show_jump_nav) {
+            $output[] = $this->render_jump_navigation_script();
+        }
         
         return implode('', $output);
+    }
+    
+    // Render jump navigation
+    private function render_jump_navigation($grouped_tags) {
+        $all_letters = array_merge(
+            array('0-9', '#'), // Numbers and symbols first
+            range('A', 'Z')
+        );
+        
+        $available_letters = array_keys($grouped_tags);
+        
+        $nav = array();
+        $nav[] = '<nav class="atl-jump-nav">';
+        $nav[] = '<div class="atl-jump-nav-inner">';
+        
+        foreach ($all_letters as $letter) {
+            $letter_id = $this->get_letter_id($letter);
+            $is_available = in_array($letter, $available_letters);
+            $class = $is_available ? 'atl-jump-link' : 'atl-jump-link disabled';
+            
+            if ($is_available) {
+                $nav[] = '<a href="#' . esc_attr($letter_id) . '" class="' . $class . '" data-letter="' . esc_attr($letter) . '">' . esc_html($letter) . '</a>';
+            } else {
+                $nav[] = '<span class="' . $class . '">' . esc_html($letter) . '</span>';
+            }
+        }
+        
+        $nav[] = '</div>';
+        $nav[] = '</nav>';
+        
+        return implode('', $nav);
+    }
+    
+    // Render smooth scroll JavaScript
+    private function render_jump_navigation_script() {
+        return "
+        <script>
+        (function() {
+            var isScrolling = false;
+            var scrollTimeout;
+            
+            // Smooth scroll for jump links
+            document.querySelectorAll('.atl-jump-link:not(.disabled)').forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var targetId = this.getAttribute('href').substring(1);
+                    var targetElement = document.getElementById(targetId);
+                    if (targetElement) {
+                        isScrolling = true;
+                        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        
+                        // Update active state immediately
+                        document.querySelectorAll('.atl-jump-link').forEach(function(l) {
+                            l.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                        
+                        // Remove focus to prevent outline persistence
+                        this.blur();
+                        
+                        // Reset isScrolling flag after scroll completes
+                        setTimeout(function() {
+                            isScrolling = false;
+                        }, 1000);
+                    }
+                });
+            });
+            
+            // Update active link based on scroll position
+            function updateActiveLink() {
+                if (isScrolling) return; // Don't update during programmatic scroll
+                
+                var sections = document.querySelectorAll('.atl-letter-section');
+                var navLinks = document.querySelectorAll('.atl-jump-link:not(.disabled)');
+                
+                // Get the offset for the sticky nav
+                var navHeight = document.querySelector('.atl-jump-nav')?.offsetHeight || 0;
+                var adminBarHeight = 0;
+                
+                // Only include admin bar height on desktop (>782px)
+                if (window.innerWidth > 782) {
+                    adminBarHeight = document.querySelector('#wpadminbar')?.offsetHeight || 0;
+                }
+                
+                var offset = navHeight + adminBarHeight + 10;
+                
+                var currentSection = null;
+                
+                // Find which section is currently at the top of the viewport
+                sections.forEach(function(section) {
+                    var rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > offset) {
+                        currentSection = section;
+                    }
+                });
+                
+                // If no section at top, find the closest one above
+                if (!currentSection) {
+                    var closestSection = null;
+                    var closestDistance = Infinity;
+                    
+                    sections.forEach(function(section) {
+                        var rect = section.getBoundingClientRect();
+                        if (rect.top < offset) {
+                            var distance = offset - rect.top;
+                            if (distance < closestDistance) {
+                                closestDistance = distance;
+                                closestSection = section;
+                            }
+                        }
+                    });
+                    
+                    currentSection = closestSection;
+                }
+                
+                // Update active state and remove focus from all links
+                if (currentSection) {
+                    var id = currentSection.getAttribute('id');
+                    navLinks.forEach(function(link) {
+                        if (link.getAttribute('href') === '#' + id) {
+                            if (!link.classList.contains('active')) {
+                                navLinks.forEach(function(l) {
+                                    l.classList.remove('active');
+                                    l.blur(); // Remove focus from all links
+                                });
+                                link.classList.add('active');
+                            }
+                        }
+                    });
+                }
+            }
+            
+            // Debounced scroll handler
+            window.addEventListener('scroll', function() {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(updateActiveLink, 50);
+            }, { passive: true });
+            
+            // Update on resize (in case crossing 782px breakpoint)
+            var resizeTimeout;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(updateActiveLink, 100);
+            });
+            
+            // Initial update
+            updateActiveLink();
+        })();
+        </script>
+        ";
+    }
+    
+    // Get sanitized ID for letter
+    private function get_letter_id($letter) {
+        if ($letter === '0-9') {
+            return 'atl-numbers';
+        } elseif ($letter === '#') {
+            return 'atl-symbols';
+        } else {
+            return 'atl-letter-' . strtolower($letter);
+        }
     }
     
     // Group tags by first letter
@@ -136,24 +383,16 @@ class Alphabetical_Tags_List {
         $grouped = array();
         
         foreach ($tags as $tag) {
-            // Use mb_substr for proper UTF-8 character handling
             $first_char = mb_substr($tag->name, 0, 1, 'UTF-8');
-            
-            // Normalize accented characters to ASCII equivalents
             $normalized_char = $this->normalize_character($first_char);
             $first_letter = mb_strtoupper($normalized_char, 'UTF-8');
             
-            // Check if it's a letter (A-Z)
             if (preg_match('/[A-Z]/i', $first_letter)) {
                 $group_key = $first_letter;
-            }
-            // Check if it's a number (0-9)
-            elseif (is_numeric($first_letter)) {
+            } elseif (is_numeric($first_letter)) {
                 $group_key = '0-9';
-            }
-            // Everything else (symbols)
-            else {
-                $group_key = '# Symbols';
+            } else {
+                $group_key = '#';
             }
             
             if (!isset($grouped[$group_key])) {
@@ -165,15 +404,10 @@ class Alphabetical_Tags_List {
         
         // Sort by key with numbers and symbols first
         uksort($grouped, function($a, $b) {
-            // Numbers first
             if ($a === '0-9' && $b !== '0-9') return -1;
             if ($b === '0-9' && $a !== '0-9') return 1;
-            
-            // Symbols second
-            if ($a === '# Symbols' && $b !== '0-9') return -1;
-            if ($b === '# Symbols' && $a !== '0-9') return 1;
-            
-            // Regular alphabetical sort for letters
+            if ($a === '#' && $b !== '0-9') return -1;
+            if ($b === '#' && $a !== '0-9') return 1;
             return strcmp($a, $b);
         });
         
@@ -182,7 +416,7 @@ class Alphabetical_Tags_List {
     
     // Normalize accented characters to ASCII equivalents
     private function normalize_character($char) {
-        // Try using iconv for transliteration (most comprehensive)
+        // Try using iconv for transliteration
         if (function_exists('iconv')) {
             $normalized = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $char);
             if ($normalized !== false && $normalized !== '') {
@@ -190,9 +424,8 @@ class Alphabetical_Tags_List {
             }
         }
         
-        // Fallback: Manual character map for common accents
+        // Fallback: Manual character map
         $char_map = array(
-            // Uppercase
             'À' => 'A', 'Á' => 'A', 'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A', 'Å' => 'A', 'Æ' => 'A',
             'Ç' => 'C',
             'È' => 'E', 'É' => 'E', 'Ê' => 'E', 'Ë' => 'E',
@@ -202,7 +435,6 @@ class Alphabetical_Tags_List {
             'Ù' => 'U', 'Ú' => 'U', 'Û' => 'U', 'Ü' => 'U',
             'Ý' => 'Y',
             'ß' => 'S',
-            // Lowercase
             'à' => 'a', 'á' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a', 'å' => 'a', 'æ' => 'a',
             'ç' => 'c',
             'è' => 'e', 'é' => 'e', 'ê' => 'e', 'ë' => 'e',
@@ -211,7 +443,6 @@ class Alphabetical_Tags_List {
             'ò' => 'o', 'ó' => 'o', 'ô' => 'o', 'õ' => 'o', 'ö' => 'o', 'ø' => 'o',
             'ù' => 'u', 'ú' => 'u', 'û' => 'u', 'ü' => 'u',
             'ý' => 'y', 'ÿ' => 'y',
-            // Extended Latin
             'Ā' => 'A', 'ā' => 'a', 'Ă' => 'A', 'ă' => 'a', 'Ą' => 'A', 'ą' => 'a',
             'Ć' => 'C', 'ć' => 'c', 'Ĉ' => 'C', 'ĉ' => 'c', 'Ċ' => 'C', 'ċ' => 'c', 'Č' => 'C', 'č' => 'c',
             'Ď' => 'D', 'ď' => 'd', 'Đ' => 'D', 'đ' => 'd',
