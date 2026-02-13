@@ -3,7 +3,7 @@
 * Plugin Name: Alphabetical Tags List
 * Plugin URI: https://github.com/pulpcovers/alphabetical-tags-list
 * Description: Display all tags alphabetically grouped by first letter using shortcode [alphabetical_tags]
-* Version: 1.3
+* Version: 1.4
 * Author: PulpCovers
 * Author URI: https://pulpcovers.com
 * License: CC0 1.0 Universal
@@ -152,11 +152,37 @@ class Alphabetical_Tags_List {
             'show_jump_nav' => true,
         ), $atts);
         
+		// Sanitize min_count (must be positive integer)
+		$atts['min_count'] = absint( $atts['min_count'] );
+		if ( $atts['min_count'] < 1 ) {
+			$atts['min_count'] = 1;
+		}
+
+		// Validate orderby against allowed values
+		$allowed_orderby = array( 'name', 'count', 'slug', 'term_id' );
+		if ( ! in_array( $atts['orderby'], $allowed_orderby, true ) ) {
+			$atts['orderby'] = 'name';
+		}
+
+		// Validate order (ASC or DESC only)
+		$atts['order'] = strtoupper( $atts['order'] );
+		if ( ! in_array( $atts['order'], array( 'ASC', 'DESC' ), true ) ) {
+			$atts['order'] = 'ASC';
+		}
+
+		// Sanitize CSS size values
+		$atts['heading_size'] = $this->sanitize_css_size( $atts['heading_size'], '24px' );
+		$atts['tag_size'] = $this->sanitize_css_size( $atts['tag_size'], '14px' );
+
+		// Sanitize booleans
+		$atts['hide_empty'] = filter_var( $atts['hide_empty'], FILTER_VALIDATE_BOOLEAN );
+		$atts['show_jump_nav'] = filter_var( $atts['show_jump_nav'], FILTER_VALIDATE_BOOLEAN );
+
         // Get all tags
         $tags = get_tags(array(
             'orderby' => $atts['orderby'],
             'order' => $atts['order'],
-            'hide_empty' => filter_var($atts['hide_empty'], FILTER_VALIDATE_BOOLEAN),
+            'hide_empty' => $atts['hide_empty'],
         ));
         
         // Filter by minimum count if specified
@@ -176,7 +202,7 @@ class Alphabetical_Tags_List {
         // Sanitize size values
         $heading_size = esc_attr($atts['heading_size']);
         $tag_size = esc_attr($atts['tag_size']);
-        $show_jump_nav = filter_var($atts['show_jump_nav'], FILTER_VALIDATE_BOOLEAN);
+        $show_jump_nav = $atts['show_jump_nav'];
         
         // Build output using array
         $output = array();
@@ -513,6 +539,22 @@ class Alphabetical_Tags_List {
         // If all else fails, return original character
         return $char;
     }
+	/**
+	 * Sanitize CSS size value to prevent XSS
+	 * Only allows numbers followed by px, em, rem, or %
+	 * 
+	 * @param string $value CSS size value to sanitize
+	 * @param string $default Default value if validation fails
+	 * @return string Sanitized CSS value
+	 */
+	private function sanitize_css_size( $value, $default ) {
+		// Allow only safe CSS units: px, em, rem, %
+		// Format: number (with optional decimal) + unit
+		if ( preg_match( '/^[0-9]+(\.[0-9]+)?(px|em|rem|%)$/i', $value ) ) {
+			return esc_attr( $value );
+		}
+		return $default;
+}
 }
 
 // Initialize the plugin
