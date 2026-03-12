@@ -1,5 +1,4 @@
-# Alphabetical Tags List - WordPress Plugin
-
+# Alphabetical Tags List
 A lightweight WordPress plugin that displays all your blog tags in an organized, alphabetical list grouped by first letter. Perfect for blogs with hundreds or thousands of tags.
 
 ## Features
