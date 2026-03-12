@@ -4,7 +4,7 @@ Requires at least: 5.0
 Tested up to: 6.9
 Requires PHP: 7.4
 Stable tag: 1.3
-License: CC0 1.0 Universal
+License: CC0-1.0
 License URI: https://creativecommons.org/publicdomain/zero/1.0/
 
 Display your WordPress tags in a clean, alphabetical list — with optional counts, links, and formatting controls.
