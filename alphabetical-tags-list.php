@@ -6,7 +6,7 @@
 * Version: 1.4
 * Author: PulpCovers
 * Author URI: https://pulpcovers.com
-* License: CC0 1.0 Universal
+* License: CC0-1.0
 */
 
 // Prevent direct access
