@@ -53,7 +53,7 @@ Use the shortcode anywhere:
 
 Example:
 
-    [alphabetical_tags_list show_count="true" show_link="false" class="my-tag-list"]
+    [alphabetical_tags_list show_count="true" show_jump_nav="false" class="my-tag-list"]
 
 == Template Function ==
 
