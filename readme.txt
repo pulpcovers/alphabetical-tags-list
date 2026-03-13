@@ -44,7 +44,7 @@ Use the shortcode anywhere:
 | Attribute | Default | Description | Example Values |
 |-----------|---------|-------------|----------------|
 | `min_count` | `1` | Minimum number of posts required for a tag to display | `1`, `5`, `10` |
-| `orderby` | `name` | How to order tags within each letter group | `name`, `count`, `slug` |
+| `orderby` | `name` | How to order tags within each letter group | `name`, `count`, `slug`, `term_id` |
 | `order` | `ASC` | Sort order (ascending or descending) | `ASC`, `DESC` |
 | `hide_empty` | `true` | Whether to hide tags with no posts | `true`, `false` |
 | `heading_size` | `24px` | Font size for letter headings (A, B, C, etc.) | `20px`, `1.5em`, `2rem` |
@@ -53,7 +53,7 @@ Use the shortcode anywhere:
 
 Example:
 
-    [alphabetical_tags_list show_count="true" show_jump_nav="false" class="my-tag-list"]
+    [alphabetical_tags min_count="10" orderby="count" order="DESC" heading_size="28px" tag_size="13px"]
 
 == Template Function ==
 
