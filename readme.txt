@@ -41,11 +41,15 @@ Use the shortcode anywhere:
 
 == Shortcode Attributes ==
 
-Attribute | Default | Description
---------- | ------- | -----------
-show_count | false | Show the number of posts for each tag
-show_link | true | Make each tag clickable
-class | (none) | Add a custom CSS class to the wrapper
+| Attribute | Default | Description | Example Values |
+|-----------|---------|-------------|----------------|
+| `min_count` | `1` | Minimum number of posts required for a tag to display | `1`, `5`, `10` |
+| `orderby` | `name` | How to order tags within each letter group | `name`, `count`, `slug` |
+| `order` | `ASC` | Sort order (ascending or descending) | `ASC`, `DESC` |
+| `hide_empty` | `true` | Whether to hide tags with no posts | `true`, `false` |
+| `heading_size` | `24px` | Font size for letter headings (A, B, C, etc.) | `20px`, `1.5em`, `2rem` |
+| `tag_size` | `14px` | Font size for tag names | `12px`, `0.875rem`, `16px` |
+| `show_jump_nav` | `true` | Whether to display the sticky jump-to-letter navigation | `true`, `false` |
 
 Example:
 
