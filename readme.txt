@@ -3,7 +3,7 @@ Contributors: pulpcovers
 Requires at least: 5.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.3
+Stable tag: 1.4
 License: CC0-1.0
 License URI: https://creativecommons.org/publicdomain/zero/1.0/
 
@@ -28,7 +28,6 @@ The output is lightweight, accessible, and easy to style.
 * Display all tags alphabetically
 * Optional tag counts
 * Optional tag links
-* Optional CSS class for custom styling
 * Works via shortcode or template function
 * No JavaScript required
 * No settings page — simple and fast
@@ -54,18 +53,6 @@ Use the shortcode anywhere:
 Example:
 
     [alphabetical_tags min_count="10" orderby="count" order="DESC" heading_size="28px" tag_size="13px"]
-
-== Template Function ==
-
-You can also output the list directly in your theme:
-
-    if ( function_exists( 'alphabetical_tags_list' ) ) {
-        echo alphabetical_tags_list( array(
-            'show_count' => true,
-            'show_link'  => true,
-            'class'      => 'tag-list',
-        ) );
-    }
 
 == Installation ==
 
