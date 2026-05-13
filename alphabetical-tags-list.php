@@ -22,7 +22,7 @@ class Alphabetical_Tags_List {
     
     // Enqueue plugin styles
     public function enqueue_styles() {
-        if (has_shortcode(get_post()->post_content ?? '', 'alphabetical_tags')) {
+        if (is_singular() && has_shortcode(get_the_content(), 'alphabetical_tags')) {
             wp_add_inline_style('wp-block-library', $this->get_inline_css());
         }
     }
@@ -554,7 +554,7 @@ class Alphabetical_Tags_List {
 			return esc_attr( $value );
 		}
 		return $default;
-}
+	}
 }
 
 // Initialize the plugin
