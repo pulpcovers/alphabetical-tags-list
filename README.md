@@ -156,28 +156,5 @@ This plugin is released under the [CC0 1.0 Universal](https://creativecommons.or
 For bug reports, feature requests, or questions:
 
 - **GitHub Issues**: [https://github.com/pulpcovers/alphabetical-tags-list/issues](https://github.com/pulpcovers/alphabetical-tags-list/issues)
-- **Website**: [https://pulpcovers.com](https://pulpcovers.com)
 
-## Changelog
 
-### Version 1.1
-- Added `heading_size` shortcode attribute
-- Added `tag_size` shortcode attribute
-- Removed theme-overriding link styles
-- Improved compact display for large tag lists
-
-### Version 1.0
-- Initial release
-- Alphabetical grouping with letter headers
-- International character support
-- UTF-8 compatibility
-- Responsive grid layout
-- Shortcode-based configuration
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## Credits
-
-Created by [PulpCovers](https://pulpcovers.com)
