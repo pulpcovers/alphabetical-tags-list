@@ -37,7 +37,7 @@ The output is lightweight, accessible, and easy to style.
 
 Use the shortcode anywhere:
 
-    [alphabetical_tags_list]
+    [alphabetical_tags]
 
 == Shortcode Attributes ==
 
