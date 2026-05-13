@@ -135,7 +135,7 @@ All styles can be overridden using custom CSS in your theme.
 ## Requirements
 
 - WordPress 5.0 or higher
-- PHP 7.0 or higher
+- PHP 7.4 or higher
 - PHP mbstring extension (usually enabled by default)
 
 ## Performance
