@@ -3,10 +3,11 @@
 * Plugin Name: Alphabetical Tags List
 * Plugin URI: https://github.com/pulpcovers/alphabetical-tags-list
 * Description: Display all tags alphabetically grouped by first letter using shortcode [alphabetical_tags]
-* Version: 1.4
+* Version: 1.0
 * Author: PulpCovers
 * Author URI: https://pulpcovers.com
-* License: CC0-1.0
+* License: GPLv2 or later
+* License URI: https://www.gnu.org/licenses/gpl-2.0.html
 */
 
 // Prevent direct access
