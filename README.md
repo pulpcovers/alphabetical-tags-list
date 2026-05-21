@@ -6,12 +6,12 @@ A lightweight WordPress plugin that displays all your blog tags in an organized,
  **Alphabetical Organization** - Tags grouped by first letter (A-Z)  
  **International Character Support** - Handles accented characters (Á, É, Ñ, Ü, etc.)  
  **UTF-8 Compatible** - Properly sorts tags in any language  
- **Smart Grouping** - Numbers grouped as "0-9", symbols as "# Symbols"  
+ **Smart Grouping** - Numbers grouped as "0-9", symbols as "#"  
  **Responsive Grid Layout** - Adapts to any screen size  
  **Theme Integration** - Tag links use your theme's styling  
  **Post Count Display** - Shows number of posts for each tag  
  **No Settings Page** - Controlled entirely by shortcode attributes  
- **Lightweight** - No external dependencies  
+ **Lightweight** - No external dependencies — JavaScript is inline and minimal  
  **Customizable** - Multiple shortcode options for fine-tuning
 
 ## Installation
@@ -90,7 +90,7 @@ Show only tags with 10+ posts, sorted by count, with custom sizes:
 Tags are displayed in the following order:
 
 1. **0-9** (all tags starting with numbers)
-2. **# Symbols** (all tags starting with symbols like `.`, `#`, `@`, etc.)
+2. **#** (all tags starting with symbols like `.`, `#`, `@`, etc.)
 3. **A-Z** (alphabetically)
 
 ## International Character Support
@@ -111,6 +111,8 @@ The original tag names are preserved in the display; only the grouping is normal
 - **German**: Ä, Ö, Ü, ß
 - **Portuguese**: Ã, Õ, Ç
 - **Polish**: Ł, Ź, Ż, Ą, Ę
+- **Cyrillic**: А, Б, В, Г, Д
+- **Greek**: Α, Β, Γ, Δ, Ε
 - **Czech**: Č, Ř, Ž, Ů
 - And 100+ more extended Latin characters
 
@@ -145,15 +147,14 @@ The plugin is optimized for sites with thousands of tags:
 - Efficient database queries
 - Minimal CSS/JavaScript
 - No external API calls
-- Server-side rendering (no client-side delays)
-
-## License
-
-This plugin is released under the [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) license (Public Domain). You are free to use, modify, and distribute it without restriction.
-
+  
 ## Support
 
 For bug reports, feature requests, or questions:
+
+## License
+
+GPLv2 or later — https://www.gnu.org/licenses/gpl-2.0.html
 
 - **GitHub Issues**: [https://github.com/pulpcovers/alphabetical-tags-list/issues](https://github.com/pulpcovers/alphabetical-tags-list/issues)
 
