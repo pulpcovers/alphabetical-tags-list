@@ -1,11 +1,11 @@
 === Alphabetical Tags List ===
 Contributors: pulpcovers
 Requires at least: 5.0
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.4
-License: CC0-1.0
-License URI: https://creativecommons.org/publicdomain/zero/1.0/
+Stable tag: 1.0
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 Display your WordPress tags in a clean, alphabetical list — with optional counts, links, and formatting controls.
 
@@ -28,8 +28,7 @@ The output is lightweight, accessible, and easy to style.
 * Display all tags alphabetically
 * Optional tag counts
 * Optional tag links
-* Works via shortcode or template function
-* No JavaScript required
+* Works via shortcode
 * No settings page — simple and fast
 
 == Shortcode ==
@@ -58,12 +57,29 @@ Example:
 
 1. Upload the plugin folder to /wp-content/plugins/
 2. Activate the plugin through “Plugins → Installed Plugins”
-3. Add the shortcode [alphabetical_tags_list] to any page or post — or call the function in your theme.
+3. Add the shortcode [alphabetical_tags] to any page or post — or call the function in your theme.
 
 == Frequently Asked Questions ==
 
 = Can I style the output? =
-Yes. Add a custom class using the “class” attribute, then style it in your theme’s CSS.
+Yes. Use the shortcode attributes for basic styling:
+
+* `heading_size` — font size for letter headings (default: 24px)
+* `tag_size` — font size for tag names (default: 14px)
+
+For more advanced styling, the plugin outputs HTML with 
+consistent CSS classes you can target in your theme's 
+stylesheet:
+
+* `.atl-container` — outer wrapper
+* `.atl-jump-nav` — sticky letter navigation bar
+* `.atl-jump-link` — individual letter links in the navigation
+* `.atl-letter-section` — wrapper for each letter group
+* `.atl-letter-heading` — the letter heading (A, B, C, etc.)
+* `.atl-tags-grid` — the grid of tags within each letter
+* `.atl-tag-item` — individual tag wrapper
+* `.atl-tag-link` — the tag link
+* `.atl-tag-count` — the post count in parentheses
 
 = Does this plugin add any settings pages? =
 No. It’s intentionally lightweight — everything is controlled via shortcode attributes.
