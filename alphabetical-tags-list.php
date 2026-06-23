@@ -23,19 +23,21 @@ class Alphabetical_Tags_List {
     }
 
     // Enqueue plugin styles and scripts
-    public function enqueue_styles() {
-        if (is_singular() && has_shortcode(get_the_content(), 'alphabetical_tags')) {
-            wp_add_inline_style('wp-block-library', $this->get_inline_css());
+public function enqueue_styles() {
+    if (is_singular() && has_shortcode(get_the_content(), 'alphabetical_tags')) {
+        wp_register_style('atl-styles', false, array(), ATL_VERSION);
+        wp_enqueue_style('atl-styles');
+        wp_add_inline_style('atl-styles', $this->get_inline_css());
 
-            wp_enqueue_script(
-                'atl-jump-nav',
-                ATL_PLUGIN_URL . 'assets/js/atl-jump-nav.js',
-                array(),
-                ATL_VERSION,
-                true
-            );
-        }
+        wp_enqueue_script(
+            'atl-jump-nav',
+            ATL_PLUGIN_URL . 'assets/js/atl-jump-nav.js',
+            array(),
+            ATL_VERSION,
+            true
+        );
     }
+}
 
     // Get inline CSS (base styles only)
     private function get_inline_css() {
