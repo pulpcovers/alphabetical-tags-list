@@ -8,6 +8,8 @@
 * Author URI: https://pulpcovers.com
 * License: GPLv2 or later
 * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+* Text Domain: alphabetical-tags-list
+* Domain Path: /languages
 */
 // Prevent direct access
 if (!defined('ABSPATH')) {
@@ -17,10 +19,20 @@ define('ATL_VERSION', '1.0');
 define('ATL_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('ATL_PLUGIN_URL', plugin_dir_url(__FILE__));
 class Alphabetical_Tags_List {
-    public function __construct() {
-        add_shortcode('alphabetical_tags', array($this, 'render_tags_list'));
-        add_action('wp_enqueue_scripts', array($this, 'enqueue_styles'));
-    }
+public function __construct() {
+    add_action('init', array($this, 'load_textdomain'));
+    add_shortcode('alphabetical_tags', array($this, 'render_tags_list'));
+    add_action('wp_enqueue_scripts', array($this, 'enqueue_styles'));
+}
+
+// Load plugin text domain for translations
+public function load_textdomain() {
+    load_plugin_textdomain(
+        'alphabetical-tags-list',
+        false,
+        dirname(plugin_basename(__FILE__)) . '/languages'
+    );
+}
 
     // Enqueue plugin styles and scripts
 public function enqueue_styles() {
@@ -195,7 +207,7 @@ public function enqueue_styles() {
         }
 
         if (empty($tags)) {
-            return '<div class="atl-no-tags">No tags found.</div>';
+            return '<div class="atl-no-tags">' . esc_html__('No tags found.', 'alphabetical-tags-list') . '</div>';
         }
 
         $grouped_tags = $this->group_tags_by_letter($tags);
