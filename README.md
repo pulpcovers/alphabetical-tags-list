@@ -11,7 +11,7 @@ A lightweight WordPress plugin that displays all your blog tags in an organized,
  **Theme Integration** - Tag links use your theme's styling  
  **Post Count Display** - Shows number of posts for each tag  
  **No Settings Page** - Controlled entirely by shortcode attributes  
- **Lightweight** - No external dependencies — JavaScript is inline and minimal  
+ **Lightweight** - No external dependencies — minimal JavaScript and CSS 
  **Customizable** - Multiple shortcode options for fine-tuning
 
 ## Installation
