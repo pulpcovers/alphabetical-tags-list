@@ -9,7 +9,6 @@
 * License: GPLv2 or later
 * License URI: https://www.gnu.org/licenses/gpl-2.0.html
 * Text Domain: alphabetical-tags-list
-* Domain Path: /languages
 */
 // Prevent direct access
 if (!defined('ABSPATH')) {
@@ -20,19 +19,11 @@ define('ATL_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('ATL_PLUGIN_URL', plugin_dir_url(__FILE__));
 class Alphabetical_Tags_List {
 public function __construct() {
-    add_action('init', array($this, 'load_textdomain'));
     add_shortcode('alphabetical_tags', array($this, 'render_tags_list'));
     add_action('wp_enqueue_scripts', array($this, 'enqueue_styles'));
 }
 
-// Load plugin text domain for translations
-public function load_textdomain() {
-    load_plugin_textdomain(
-        'alphabetical-tags-list',
-        false,
-        dirname(plugin_basename(__FILE__)) . '/languages'
-    );
-}
+
 
     // Enqueue plugin styles and scripts
 public function enqueue_styles() {
