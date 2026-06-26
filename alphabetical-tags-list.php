@@ -14,9 +14,8 @@
 if (!defined('ABSPATH')) {
     exit;
 }
-define('ATL_VERSION', '1.0');
-define('ATL_PLUGIN_DIR', plugin_dir_path(__FILE__));
-define('ATL_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('ALPHABETICAL_TAGS_VERSION', '1.0');
+define('ALPHABETICAL_TAGS_PLUGIN_URL', plugin_dir_url(__FILE__));
 class Alphabetical_Tags_List {
 public function __construct() {
     add_shortcode('alphabetical_tags', array($this, 'render_tags_list'));
@@ -28,15 +27,15 @@ public function __construct() {
     // Enqueue plugin styles and scripts
 public function enqueue_styles() {
     if (is_singular() && has_shortcode(get_the_content(), 'alphabetical_tags')) {
-        wp_register_style('atl-styles', false, array(), ATL_VERSION);
+        wp_register_style('atl-styles', false, array(), ALPHABETICAL_TAGS_VERSION);
         wp_enqueue_style('atl-styles');
         wp_add_inline_style('atl-styles', $this->get_inline_css());
 
         wp_enqueue_script(
             'atl-jump-nav',
-            ATL_PLUGIN_URL . 'assets/js/atl-jump-nav.js',
+            ALPHABETICAL_TAGS_PLUGIN_URL . 'assets/js/atl-jump-nav.js',
             array(),
-            ATL_VERSION,
+            ALPHABETICAL_TAGS_VERSION,
             true
         );
     }
