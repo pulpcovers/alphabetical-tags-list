@@ -26,8 +26,8 @@ The output is lightweight, accessible, and easy to style.
 === Features ===
 
 * Display all tags alphabetically
-* Optional tag counts
-* Optional tag links
+* Tag counts
+* Tag links
 * Works via shortcode
 * No settings page — simple and fast
 
@@ -67,8 +67,8 @@ Yes. Use the shortcode attributes for basic styling:
 * `heading_size` — font size for letter headings (default: 24px)
 * `tag_size` — font size for tag names (default: 14px)
 
-For more advanced styling, the plugin outputs HTML with 
-consistent CSS classes you can target in your theme's 
+For more advanced styling, the plugin outputs HTML with
+consistent CSS classes you can target in your theme's
 stylesheet:
 
 * `.atl-container` — outer wrapper
@@ -81,11 +81,54 @@ stylesheet:
 * `.atl-tag-link` — the tag link
 * `.atl-tag-count` — the post count in parentheses
 
+= Why isn't my tag showing? =
+There are two default behaviours that can cause a tag to be hidden:
+
+* `hide_empty` is set to `true` by default, meaning tags with no 
+  posts assigned to them will not appear. To show all tags regardless 
+  of post count, use:
+
+    [alphabetical_tags hide_empty="false"]
+
+* `min_count` is set to `1` by default, meaning a tag must have at 
+  least one post to display. If you have raised this value, tags below 
+  that threshold will be hidden. For example, if you have set 
+  `min_count="5"`, any tag with fewer than 5 posts will not appear.
+
+To display all tags with no restrictions:
+
+    [alphabetical_tags hide_empty="false" min_count="1"]
+
+= Does it support accented and international characters? =
+Yes. The plugin normalizes accented and special characters when 
+grouping tags by letter, so tags are always filed under their base 
+letter regardless of diacritics. For example:
+
+* Árbol, Águila → grouped under A
+* Éclair, Ñoño → grouped under E and N respectively
+* Über → grouped under U
+
+The following scripts are supported:
+
+* Latin extended — Spanish, French, German, Portuguese, Polish, 
+  Czech, and 100+ more (Á, É, Ñ, Ü, Ç, Ø, Ł, etc.)
+* Cyrillic — transliterated to their ASCII equivalents for grouping
+* Greek — transliterated to their ASCII equivalents for grouping
+
+The original tag name is always preserved in the display — only the 
+grouping logic uses the normalized form.
+
+For best results, ensure your server has the PHP `intl` extension 
+enabled. The plugin will fall back to a built-in character map if 
+`intl` is unavailable, so international characters will still be 
+handled correctly in either case.
+
 = Does this plugin add any settings pages? =
-No. It’s intentionally lightweight — everything is controlled via shortcode attributes.
+No. It's intentionally lightweight — everything is controlled via 
+shortcode attributes.
 
 = Does it support custom taxonomies? =
-Not yet. The plugin currently supports the built‑in post_tag taxonomy.
+Not yet. The plugin currently supports the built-in post_tag taxonomy.
 
 = Does it work with block themes? =
 Yes. You can place the shortcode in any block that supports shortcodes.
