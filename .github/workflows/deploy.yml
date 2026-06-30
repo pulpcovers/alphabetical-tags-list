@@ -1,20 +1,23 @@
 name: Deploy to WordPress.org
 
 on:
-  push:
-    tags:
-      - '*'
+  release:
+    types: [published]
 
 jobs:
   deploy:
+    name: Deploy Plugin
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Deploy to WordPress.org Plugin SVN
+      - name: WordPress Plugin Deploy
         uses: 10up/action-wordpress-plugin-deploy@stable
+        with:
+          slug: alphabetical-tags-list
+          generate-zip: true
         env:
-          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
-          SLUG: alphabetical-tags-list
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
