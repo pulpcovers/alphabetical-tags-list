@@ -3,7 +3,7 @@
 * Plugin Name: Alphabetical Tags List
 * Plugin URI: https://github.com/pulpcovers/alphabetical-tags-list
 * Description: Display all tags alphabetically grouped by first letter using shortcode [alphabetical_tags]
-* Version: 1.0
+* Version: 1.0.2
 * Tested up to: 7.1
 * Author: PulpCovers
 * Author URI: https://pulpcovers.com
