@@ -4,7 +4,6 @@
 * Plugin URI: https://github.com/pulpcovers/alphabetical-tags-list
 * Description: Display all tags alphabetically grouped by first letter using shortcode [alphabetical_tags]
 * Version: 1.2.0
-* Tested up to: 7.1
 * Author: PulpCovers
 * Author URI: https://pulpcovers.com
 * License: GPLv2 or later
@@ -16,9 +15,10 @@ if (!defined('ABSPATH')) {
     exit;
 }
 // Single source of truth: the Version header above
-$atl_plugin_data = get_file_data(__FILE__, array('Version' => 'Version'));
-define('ALPHABETICAL_TAGS_VERSION', !empty($atl_plugin_data['Version']) ? $atl_plugin_data['Version'] : '1.2.0');
-unset($atl_plugin_data);
+define('ALPHABETICAL_TAGS_VERSION', (function () {
+    $data = get_file_data(__FILE__, array('Version' => 'Version'));
+    return !empty($data['Version']) ? $data['Version'] : '1.2.0';
+})());
 define('ALPHABETICAL_TAGS_PLUGIN_URL', plugin_dir_url(__FILE__));
 class Alphabetical_Tags_List {
 public function __construct() {

@@ -7,7 +7,7 @@ Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Display your WordPress tags in a clean, alphabetical list, grouped by first letter, with post counts, a jump-to-letter navigation, and formatting controls.
+Display your tags in an alphabetical list grouped by first letter, with post counts and a jump-to-letter navigation.
 
 == Description ==
 
