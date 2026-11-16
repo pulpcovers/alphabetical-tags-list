@@ -153,7 +153,7 @@ When no tags match, visitors see nothing; logged-in users who can edit posts see
 
 ## Requirements
 
-- WordPress 5.0 or higher (5.9 or higher recommended: the sticky navigation uses the admin-bar height variable that WordPress added in 5.9, and without it sits under the admin bar for logged-in users)
+- WordPress 5.9 or higher (the sticky navigation uses the admin-bar height variable that WordPress added in 5.9)
 - PHP 7.4 or higher
 - PHP mbstring extension (recommended; without it, tags starting with non-ASCII characters are grouped under `#`)
 
