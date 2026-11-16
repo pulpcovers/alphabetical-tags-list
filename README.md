@@ -4,12 +4,12 @@ A lightweight WordPress plugin that displays all your blog tags in an organized,
 ## Features
 
  **Alphabetical Organization** - Tags grouped by first letter (A-Z)  
- **International Character Support** - Handles accented characters (Á, É, Ñ, Ü, etc.)  
- **UTF-8 Compatible** - Properly sorts tags in any language  
+ **International Character Support** - Handles accented characters (Á, É, Ñ, Ü, etc.) and transliterates Cyrillic and Greek for grouping  
+ **UTF-8 Compatible** - Tag names display correctly in any language; grouping covers Latin, Cyrillic and Greek (other scripts go under "#")  
  **Smart Grouping** - Numbers grouped as "0-9", symbols as "#"  
  **Responsive Grid Layout** - Adapts to any screen size  
  **Theme Integration** - Tag links use your theme's styling  
- **Post Count Display** - Shows number of posts for each tag  
+ **Post Count Display** - Shows number of posts for each tag (can be turned off with `show_count="false"`)  
  **No Settings Page** - Controlled entirely by shortcode attributes  
  **Lightweight** - No external dependencies — minimal JavaScript and CSS 
  **Customizable** - Multiple shortcode options for fine-tuning
@@ -40,6 +40,7 @@ Simply add the shortcode to any page or post:
 | `tag_size` | `14px` | Font size for tag names | `12px`, `0.875rem`, `16px` |
 | `show_jump_nav` | `true` | Whether to display the sticky jump-to-letter navigation | `true`, `false` |
 | `heading_level` | `2` | HTML heading level for letter headings (1–6 or `h1`–`h6`) | `2`, `3`, `h4` |
+| `show_count` | `true` | Whether to show the post count after each tag | `true`, `false` |
 
 ## Examples
 
@@ -61,6 +62,10 @@ Order tags by post count (most popular first) within each letter:
 Display tags even if they have no posts:
 
 [alphabetical_tags hide_empty="false"]
+
+### Hide Post Counts
+Show tags without the number of posts:
+[alphabetical_tags show_count="false"]
 
 ### Hide Jump Navigation
 Remove the A-Z sticky navigation at the top:
@@ -105,6 +110,8 @@ The plugin properly handles accented and special characters by normalizing them 
 
 The original tag names are preserved in the display; only the grouping is normalized.
 
+Transliterations that produce several letters are grouped under the first one (for example, **Ж** → `ZH` is filed under **Z**, and **Æ** → `AE` under **A**). Tags starting with other scripts (Chinese, Japanese, Korean, Arabic, Hebrew, etc.) are grouped under **#**.
+
 ### Supported Characters
 
 - **Spanish**: Á, É, Í, Ó, Ú, Ñ, Ü
@@ -123,7 +130,7 @@ The plugin uses minimal CSS and allows your theme's link styles to apply to tag 
 
 - Responsive grid layout (adjusts to screen width)
 - Letter headings with bottom border
-- Tag count in gray
+- Tag count shown in a lighter shade of the text color
 - No background boxes (clean, simple look)
 
 All styles can be overridden using custom CSS in your theme, or by setting these CSS custom properties (for example on `:root`):
@@ -146,17 +153,36 @@ When no tags match, visitors see nothing; logged-in users who can edit posts see
 
 ## Requirements
 
-- WordPress 5.0 or higher
+- WordPress 5.0 or higher (5.9 or higher recommended: the sticky navigation uses the admin-bar height variable that WordPress added in 5.9, and without it sits under the admin bar for logged-in users)
 - PHP 7.4 or higher
-- PHP mbstring extension (usually enabled by default)
+- PHP mbstring extension (recommended; without it, tags starting with non-ASCII characters are grouped under `#`)
 
 ## Performance
 
-The plugin is optimized for sites with thousands of tags:
+The plugin is designed to stay light on large sites:
 
-- Efficient database queries
+- A single tag query per shortcode, with per-character caching of the normalization work
+- Assets load only on pages that render the shortcode
+- Active-letter tracking uses an `IntersectionObserver` instead of scroll handlers
 - Minimal CSS/JavaScript
 - No external API calls
+
+The rendered list is not cached between requests; use a page-cache plugin if you have very large tag sets and heavy traffic.
+
+## Changelog
+
+### 1.2.0
+- **Performance:** assets load only where the shortcode renders; cached character normalization; `IntersectionObserver`-based active-letter tracking
+- **Accessibility:** visible focus styles, ARIA labels and states, reduced-motion support, focus moves to the section heading
+- **Theming:** CSS custom properties (`--atl-accent`, `--atl-accent-text`, `--atl-text`, `--atl-nav-bg`); sticky offsets follow the WordPress admin bar
+- New `heading_level` and `show_count` attributes; `min_count="0"` is now allowed
+- Empty-state notice is shown only to users who can edit posts
+- **Fix:** correct group order (0-9, #, A-Z); multi-letter transliterations (e.g. Ж, Æ) now group under their first letter
+- **Fix:** plugin no longer errors when the mbstring extension is missing
+- Version constant is now read from the plugin header
+
+### 1.0.0
+- Initial release
   
 ## Support
 

@@ -3,11 +3,11 @@ Contributors: pulpcovers
 Requires at least: 5.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.2
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Display your WordPress tags in a clean, alphabetical list — with optional counts, links, and formatting controls.
+Display your WordPress tags in a clean, alphabetical list, grouped by first letter, with post counts, a jump-to-letter navigation, and formatting controls.
 
 == Description ==
 
@@ -25,8 +25,9 @@ The output is lightweight, accessible, and easy to style.
 
 === Features ===
 
-* Display all tags alphabetically
-* Tag counts
+* Display all tags alphabetically, grouped by first letter
+* Sticky A–Z jump navigation (can be turned off)
+* Tag counts (optional: `show_count="false"` hides them)
 * Tag links
 * Works via shortcode
 * No settings page — simple and fast
@@ -37,7 +38,7 @@ Use the shortcode anywhere:
 
 `[alphabetical_tags]`
 
-The list of tags will display
+The tag list is displayed, grouped by letter, in the order 0-9, #, then A–Z.
 
 === Shortcode Attributes ===
 
@@ -49,6 +50,7 @@ The list of tags will display
 * `tag_size` (default: `14px`) — Font size for tag names. Example: `12px`, `0.875rem`, `16px`
 * `show_jump_nav` (default: `true`) — Whether to display the sticky jump-to-letter navigation. Example: `false`
 * `heading_level` (default: `2`) — HTML heading level used for the letter headings (1–6, or `h1`–`h6`). Example: `3`
+* `show_count` (default: `true`) — Whether to show the post count after each tag. Example: `false`
 
 === Example ===
 
@@ -60,7 +62,7 @@ Show only tags with 10 or more posts, sorted by popularity, with custom font siz
 
 1. Upload the plugin folder to /wp-content/plugins/
 2. Activate the plugin through “Plugins → Installed Plugins”
-3. Add the shortcode [alphabetical_tags] to any page or post — or call the function in your theme.
+3. Add the shortcode [alphabetical_tags] to any page or post. In a theme template, use `echo do_shortcode( '[alphabetical_tags]' );`.
 
 == Frequently Asked Questions ==
 
@@ -110,7 +112,7 @@ There are two default behaviours that can cause a tag to be hidden:
 
 To display all tags with no restrictions:
 
-    [alphabetical_tags hide_empty="false" min_count="1"]
+    [alphabetical_tags hide_empty="false" min_count="0"]
 
 = Does it support accented and international characters? =
 Yes. The plugin normalizes accented and special characters when 
@@ -128,13 +130,19 @@ The following scripts are supported:
 * Cyrillic — transliterated to their ASCII equivalents for grouping
 * Greek — transliterated to their ASCII equivalents for grouping
 
+Transliterations that produce several letters are grouped under the 
+first one (for example, Ж → ZH is filed under Z, and Æ → AE under A).
+Tags starting with other scripts (for example Chinese, Japanese, 
+Korean, Arabic, or Hebrew) are grouped under #.
+
 The original tag name is always preserved in the display — only the 
 grouping logic uses the normalized form.
 
 For best results, ensure your server has the PHP `intl` extension 
-enabled. The plugin will fall back to a built-in character map if 
-`intl` is unavailable, so international characters will still be 
-handled correctly in either case.
+enabled. The plugin falls back to a built-in character map if `intl` 
+is unavailable. The PHP `mbstring` extension is also recommended; 
+without it, tags starting with non-ASCII characters are grouped 
+under #.
 
 = Does this plugin add any settings pages? =
 No. It's intentionally lightweight — everything is controlled via 
@@ -147,6 +155,16 @@ Not yet. The plugin currently supports the built-in post_tag taxonomy.
 Yes. You can place the shortcode in any block that supports shortcodes.
 
 == Changelog ==
+
+= 1.2.0 =
+* Performance: assets load only where the shortcode renders; cached character normalization; IntersectionObserver-based active-letter tracking
+* Accessibility: visible focus styles, ARIA labels and states, reduced-motion support, focus moves to the section heading
+* Theming: CSS custom properties (`--atl-accent`, `--atl-accent-text`, `--atl-text`, `--atl-nav-bg`); sticky offsets follow the WordPress admin bar
+* New `heading_level` and `show_count` attributes; `min_count="0"` is now allowed
+* Empty-state notice is shown only to users who can edit posts
+* Fix: correct group order (0-9, #, A-Z); multi-letter transliterations (e.g. Ж, Æ) now group under their first letter
+* Fix: plugin no longer errors when the mbstring extension is missing
+* Version constant is now read from the plugin header
 
 = 1.0.0 =
 * Initial release

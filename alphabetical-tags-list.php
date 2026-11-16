@@ -3,7 +3,7 @@
 * Plugin Name: Alphabetical Tags List
 * Plugin URI: https://github.com/pulpcovers/alphabetical-tags-list
 * Description: Display all tags alphabetically grouped by first letter using shortcode [alphabetical_tags]
-* Version: 1.0.2
+* Version: 1.2.0
 * Tested up to: 7.1
 * Author: PulpCovers
 * Author URI: https://pulpcovers.com
@@ -15,7 +15,10 @@
 if (!defined('ABSPATH')) {
     exit;
 }
-define('ALPHABETICAL_TAGS_VERSION', '1.0');
+// Single source of truth: the Version header above
+$atl_plugin_data = get_file_data(__FILE__, array('Version' => 'Version'));
+define('ALPHABETICAL_TAGS_VERSION', !empty($atl_plugin_data['Version']) ? $atl_plugin_data['Version'] : '1.2.0');
+unset($atl_plugin_data);
 define('ALPHABETICAL_TAGS_PLUGIN_URL', plugin_dir_url(__FILE__));
 class Alphabetical_Tags_List {
 public function __construct() {
@@ -210,6 +213,7 @@ private function enqueue_assets($with_jump_nav) {
             'tag_size' => '14px',
             'show_jump_nav' => true,
             'heading_level' => 2,
+            'show_count' => true,
         ), $atts);
 
         $atts['min_count'] = absint($atts['min_count']);
@@ -235,6 +239,7 @@ private function enqueue_assets($with_jump_nav) {
 
         $atts['hide_empty'] = filter_var($atts['hide_empty'], FILTER_VALIDATE_BOOLEAN);
         $atts['show_jump_nav'] = filter_var($atts['show_jump_nav'], FILTER_VALIDATE_BOOLEAN);
+        $atts['show_count'] = filter_var($atts['show_count'], FILTER_VALIDATE_BOOLEAN);
 
         $tags = get_tags(array(
             'orderby' => $atts['orderby'],
@@ -282,7 +287,9 @@ private function enqueue_assets($with_jump_nav) {
                 $output[] = '<a href="' . esc_url(get_tag_link($tag->term_id)) . '" class="atl-tag-link">';
                 $output[] = esc_html($tag->name);
                 $output[] = '</a>';
-                $output[] = '<span class="atl-tag-count">(' . esc_html($tag->count) . ')</span>';
+                if ($atts['show_count']) {
+                    $output[] = '<span class="atl-tag-count">(' . esc_html($tag->count) . ')</span>';
+                }
                 $output[] = '</div>';
             }
 
