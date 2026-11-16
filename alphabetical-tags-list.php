@@ -247,6 +247,10 @@ private function enqueue_assets($with_jump_nav) {
             'hide_empty' => $atts['hide_empty'],
         ));
 
+        if (is_wp_error($tags) || !is_array($tags)) {
+            $tags = array();
+        }
+
         if ($atts['min_count'] > 1) {
             $tags = array_filter($tags, function($tag) use ($atts) {
                 return $tag->count >= $atts['min_count'];
