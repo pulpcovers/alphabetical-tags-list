@@ -56,18 +56,38 @@ private function enqueue_assets($with_jump_nav) {
     }
 }
 
+    // Per-size-combination CSS variables, added once each (no inline style attributes)
+    private function add_size_rules($heading_size, $tag_size) {
+        static $added = array();
+
+        $class = 'atl-sz-' . substr(md5($heading_size . '|' . $tag_size), 0, 8);
+
+        if (!isset($added[$class])) {
+            wp_add_inline_style(
+                'atl-styles',
+                '.' . $class . '{--atl-heading-size:' . $heading_size . ';--atl-tag-size:' . $tag_size . ';}'
+            );
+            $added[$class] = true;
+        }
+
+        return $class;
+    }
+
     // Get inline CSS (base styles only)
     private function get_inline_css() {
-        $admin_bar_height = is_admin_bar_showing() ? '32px' : '0px';
-        $scroll_margin = is_admin_bar_showing() ? '140px' : '100px';
         return "
+            .atl-jump-nav,
+            .atl-letter-section {
+                --atl-bar-offset: var(--wp-admin--admin-bar--height, 0px);
+            }
             .atl-container {
+                font-size: var(--atl-tag-size, 14px);
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
                 line-height: 1.5;
             }
             .atl-jump-nav {
                 position: sticky;
-                top: {$admin_bar_height};
+                top: var(--atl-bar-offset);
                 background: var(--atl-nav-bg, var(--wp--preset--color--base, #fff));
                 padding: 15px 0;
                 margin-bottom: 30px;
@@ -126,9 +146,10 @@ private function enqueue_assets($with_jump_nav) {
             }
             .atl-letter-section {
                 margin-bottom: 25px;
-                scroll-margin-top: {$scroll_margin};
+                scroll-margin-top: calc(var(--atl-bar-offset) + 100px);
             }
-            .atl-letter-heading {
+            .atl-container .atl-letter-heading {
+                font-size: var(--atl-heading-size, 24px);
                 font-weight: bold;
                 color: var(--atl-text, inherit);
                 margin-bottom: 10px;
@@ -156,12 +177,10 @@ private function enqueue_assets($with_jump_nav) {
                 border-left: 4px solid #ffc107;
                 color: #856404;
             }
-            @media (max-width: 782px) {
-                .atl-jump-nav {
-                    top: 0;
-                }
+            @media (max-width: 600px) {
+                .atl-jump-nav,
                 .atl-letter-section {
-                    scroll-margin-top: 100px;
+                    --atl-bar-offset: 0px;
                 }
             }
             @media (max-width: 768px) {
@@ -190,12 +209,16 @@ private function enqueue_assets($with_jump_nav) {
             'heading_size' => '24px',
             'tag_size' => '14px',
             'show_jump_nav' => true,
+            'heading_level' => 2,
         ), $atts);
 
         $atts['min_count'] = absint($atts['min_count']);
-        if ($atts['min_count'] < 1) {
-            $atts['min_count'] = 1;
+
+        $heading_level = (int) ltrim(strtolower((string) $atts['heading_level']), 'h');
+        if ($heading_level < 1 || $heading_level > 6) {
+            $heading_level = 2;
         }
+        $heading_tag = 'h' . $heading_level;
 
         $allowed_orderby = array('name', 'count', 'slug', 'term_id');
         if (!in_array($atts['orderby'], $allowed_orderby, true)) {
@@ -226,16 +249,19 @@ private function enqueue_assets($with_jump_nav) {
         }
 
         if (empty($tags)) {
+            // Visitors see nothing; editors get a hint
+            if (!current_user_can('edit_posts')) {
+                return '';
+            }
             return '<div class="atl-no-tags">' . esc_html__('No tags found.', 'alphabetical-tags-list') . '</div>';
         }
 
         $grouped_tags = $this->group_tags_by_letter($tags);
 
-        $heading_size = esc_attr($atts['heading_size']);
-        $tag_size = esc_attr($atts['tag_size']);
         $show_jump_nav = $atts['show_jump_nav'];
 
         $this->enqueue_assets($show_jump_nav);
+        $size_class = $this->add_size_rules($atts['heading_size'], $atts['tag_size']);
 
         $output = array();
 
@@ -243,12 +269,12 @@ private function enqueue_assets($with_jump_nav) {
             $output[] = $this->render_jump_navigation($grouped_tags);
         }
 
-        $output[] = '<div class="atl-container" style="font-size: ' . $tag_size . ';">';
+        $output[] = '<div class="atl-container ' . esc_attr($size_class) . '">';
 
         foreach ($grouped_tags as $letter => $letter_tags) {
             $letter_id = $this->get_letter_id($letter);
             $output[] = '<div class="atl-letter-section" id="' . esc_attr($letter_id) . '">';
-            $output[] = '<h2 class="atl-letter-heading" tabindex="-1" style="font-size: ' . $heading_size . ';">' . esc_html($letter) . '</h2>';
+            $output[] = '<' . $heading_tag . ' class="atl-letter-heading" tabindex="-1">' . esc_html($letter) . '</' . $heading_tag . '>';
             $output[] = '<div class="atl-tags-grid">';
 
             foreach ($letter_tags as $tag) {
@@ -314,9 +340,13 @@ private function enqueue_assets($with_jump_nav) {
         $grouped = array();
 
         foreach ($tags as $tag) {
-            $first_char = mb_substr($tag->name, 0, 1, 'UTF-8');
+            $first_char = function_exists('mb_substr')
+                ? mb_substr($tag->name, 0, 1, 'UTF-8')
+                : substr($tag->name, 0, 1);
             $normalized_char = $this->normalize_character($first_char);
-            $first_letter = mb_strtoupper(mb_substr($normalized_char, 0, 1, 'UTF-8'), 'UTF-8');
+            $first_letter = function_exists('mb_substr')
+                ? mb_strtoupper(mb_substr($normalized_char, 0, 1, 'UTF-8'), 'UTF-8')
+                : strtoupper(substr($normalized_char, 0, 1));
 
             if (preg_match('/[A-Z]/i', $first_letter)) {
                 $group_key = $first_letter;

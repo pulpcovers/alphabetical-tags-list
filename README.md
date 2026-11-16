@@ -32,13 +32,14 @@ Simply add the shortcode to any page or post:
 ### Shortcode Options
 | Attribute | Default | Description | Example Values |
 |-----------|---------|-------------|----------------|
-| `min_count` | `1` | Minimum number of posts required for a tag to display | `1`, `5`, `10` |
+| `min_count` | `1` | Minimum number of posts required for a tag to display (`0` = no minimum) | `0`, `1`, `5`, `10` |
 | `orderby` | `name` | How to order tags within each letter group | `name`, `count`, `slug`, `term_id` |
 | `order` | `ASC` | Sort order (ascending or descending) | `ASC`, `DESC` |
 | `hide_empty` | `true` | Whether to hide tags with no posts | `true`, `false` |
 | `heading_size` | `24px` | Font size for letter headings (A, B, C, etc.) | `20px`, `1.5em`, `2rem` |
 | `tag_size` | `14px` | Font size for tag names | `12px`, `0.875rem`, `16px` |
 | `show_jump_nav` | `true` | Whether to display the sticky jump-to-letter navigation | `true`, `false` |
+| `heading_level` | `2` | HTML heading level for letter headings (1–6 or `h1`–`h6`) | `2`, `3`, `h4` |
 
 ## Examples
 
@@ -125,7 +126,16 @@ The plugin uses minimal CSS and allows your theme's link styles to apply to tag 
 - Tag count in gray
 - No background boxes (clean, simple look)
 
-All styles can be overridden using custom CSS in your theme.
+All styles can be overridden using custom CSS in your theme, or by setting these CSS custom properties (for example on `:root`):
+
+| Property | Default | Purpose |
+|----------|---------|---------|
+| `--atl-accent` | `#0073aa` | Accent color (borders, active/hover letters) |
+| `--atl-accent-text` | `#fff` | Text color on accented items |
+| `--atl-text` | inherited | Text color for letter links and headings |
+| `--atl-nav-bg` | theme base color or `#fff` | Background of the sticky navigation |
+
+When no tags match, visitors see nothing; logged-in users who can edit posts see a "No tags found." notice.
 
 ## Browser Compatibility
 

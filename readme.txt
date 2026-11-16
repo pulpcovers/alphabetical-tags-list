@@ -41,13 +41,14 @@ The list of tags will display
 
 === Shortcode Attributes ===
 
-* `min_count` (default: `1`) — Minimum number of posts required for a tag to display. Example: `5`, `10`
+* `min_count` (default: `1`) — Minimum number of posts required for a tag to display. Use `0` for no minimum. Example: `0`, `5`, `10`
 * `orderby` (default: `name`) — How to order tags within each letter group. Example: `count`, `slug`, `term_id`
 * `order` (default: `ASC`) — Sort order, ascending or descending. Example: `DESC`
 * `hide_empty` (default: `true`) — Whether to hide tags with no posts. Example: `false`
 * `heading_size` (default: `24px`) — Font size for letter headings (A, B, C, etc.). Example: `20px`, `1.5em`, `2rem`
 * `tag_size` (default: `14px`) — Font size for tag names. Example: `12px`, `0.875rem`, `16px`
 * `show_jump_nav` (default: `true`) — Whether to display the sticky jump-to-letter navigation. Example: `false`
+* `heading_level` (default: `2`) — HTML heading level used for the letter headings (1–6, or `h1`–`h6`). Example: `3`
 
 === Example ===
 
@@ -82,6 +83,16 @@ stylesheet:
 * `.atl-tag-item` — individual tag wrapper
 * `.atl-tag-link` — the tag link
 * `.atl-tag-count` — the post count in parentheses
+
+The plugin also reads these CSS custom properties, which you can set in your theme (for example on `:root`):
+
+* `--atl-accent` — accent color (default: `#0073aa`)
+* `--atl-accent-text` — text color on accented items (default: `#fff`)
+* `--atl-text` — text color for letter links and headings (default: inherited)
+* `--atl-nav-bg` — background of the sticky navigation (default: the theme's base color, or `#fff`)
+
+= What if there are no tags? =
+Visitors see nothing. Logged-in users who can edit posts see a "No tags found." notice.
 
 = Why isn't my tag showing? =
 There are two default behaviours that can cause a tag to be hidden:

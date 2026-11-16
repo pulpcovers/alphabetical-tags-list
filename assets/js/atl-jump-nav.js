@@ -64,11 +64,11 @@
         window.addEventListener('scrollend', finishScrolling);
     }
 
-    // Compute the viewport line below the sticky nav / admin bar
+    // Sticky offset is resolved by the browser from CSS, so it follows the admin bar
     function getOffset() {
+        var stickyTop = nav ? parseFloat(getComputedStyle(nav).top) || 0 : 0;
         var navHeight = nav ? nav.offsetHeight : 0;
-        var adminBar = window.innerWidth > 782 ? document.getElementById('wpadminbar') : null;
-        return navHeight + (adminBar ? adminBar.offsetHeight : 0) + 10;
+        return stickyTop + navHeight + 10;
     }
 
     // A section is "current" while it crosses a 1px line at the offset, which
