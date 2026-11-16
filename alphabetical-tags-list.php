@@ -20,25 +20,39 @@ define('ALPHABETICAL_TAGS_PLUGIN_URL', plugin_dir_url(__FILE__));
 class Alphabetical_Tags_List {
 public function __construct() {
     add_shortcode('alphabetical_tags', array($this, 'render_tags_list'));
-    add_action('wp_enqueue_scripts', array($this, 'enqueue_styles'));
+    add_action('wp_enqueue_scripts', array($this, 'register_assets'));
 }
 
 
 
-    // Enqueue plugin styles and scripts
-public function enqueue_styles() {
-    if (is_singular() && has_shortcode(get_the_content(), 'alphabetical_tags')) {
-        wp_register_style('atl-styles', false, array(), ALPHABETICAL_TAGS_VERSION);
+    // Register (but don't enqueue) assets; they are enqueued only when the shortcode renders
+public function register_assets() {
+    wp_register_style('atl-styles', false, array(), ALPHABETICAL_TAGS_VERSION);
+    wp_register_script(
+        'atl-jump-nav',
+        ALPHABETICAL_TAGS_PLUGIN_URL . 'assets/js/atl-jump-nav.js',
+        array(),
+        ALPHABETICAL_TAGS_VERSION,
+        true
+    );
+}
+
+    // Enqueue assets once per request, from wherever the shortcode is rendered
+private function enqueue_assets($with_jump_nav) {
+    static $style_added = false;
+
+    if (!wp_style_is('atl-styles', 'registered')) {
+        $this->register_assets();
+    }
+
+    if (!$style_added) {
         wp_enqueue_style('atl-styles');
         wp_add_inline_style('atl-styles', $this->get_inline_css());
+        $style_added = true;
+    }
 
-        wp_enqueue_script(
-            'atl-jump-nav',
-            ALPHABETICAL_TAGS_PLUGIN_URL . 'assets/js/atl-jump-nav.js',
-            array(),
-            ALPHABETICAL_TAGS_VERSION,
-            true
-        );
+    if ($with_jump_nav) {
+        wp_enqueue_script('atl-jump-nav');
     }
 }
 
@@ -54,10 +68,10 @@ public function enqueue_styles() {
             .atl-jump-nav {
                 position: sticky;
                 top: {$admin_bar_height};
-                background: #fff;
+                background: var(--atl-nav-bg, var(--wp--preset--color--base, #fff));
                 padding: 15px 0;
                 margin-bottom: 30px;
-                border-bottom: 2px solid #0073aa;
+                border-bottom: 2px solid var(--atl-accent, #0073aa);
                 z-index: 100;
             }
             .atl-jump-nav-inner {
@@ -71,7 +85,7 @@ public function enqueue_styles() {
                 display: inline-block;
                 padding: 6px 10px;
                 text-decoration: none;
-                color: #333;
+                color: var(--atl-text, inherit);
                 font-weight: bold;
                 font-size: 14px;
                 border-radius: 4px;
@@ -80,19 +94,32 @@ public function enqueue_styles() {
                 text-align: center;
             }
             .atl-jump-link:hover {
-                background: #0073aa;
-                color: #fff;
+                background: var(--atl-accent, #0073aa);
+                color: var(--atl-accent-text, #fff);
                 transform: translateY(-1px);
             }
             .atl-jump-link.active {
-                background: #0073aa;
-                color: #fff;
+                background: var(--atl-accent, #0073aa);
+                color: var(--atl-accent-text, #fff);
             }
-            .atl-jump-link:focus {
+            .atl-jump-link:focus-visible {
+                outline: 2px solid var(--atl-accent, #0073aa);
+                outline-offset: 2px;
+            }
+            .atl-letter-heading:focus {
                 outline: none;
             }
+            @media (prefers-reduced-motion: reduce) {
+                .atl-jump-link {
+                    transition: none;
+                }
+                .atl-jump-link:hover {
+                    transform: none;
+                }
+            }
             .atl-jump-link.disabled {
-                color: #ccc;
+                color: inherit;
+                opacity: 0.35;
                 cursor: not-allowed;
                 pointer-events: none;
                 font-weight: bold;
@@ -103,10 +130,10 @@ public function enqueue_styles() {
             }
             .atl-letter-heading {
                 font-weight: bold;
-                color: #333;
+                color: var(--atl-text, inherit);
                 margin-bottom: 10px;
                 padding-bottom: 5px;
-                border-bottom: 2px solid #0073aa;
+                border-bottom: 2px solid var(--atl-accent, #0073aa);
             }
             .atl-tags-grid {
                 display: grid;
@@ -118,7 +145,8 @@ public function enqueue_styles() {
                 line-height: 1.4;
             }
             .atl-tag-count {
-                color: #666;
+                color: inherit;
+                opacity: 0.7;
                 font-size: 0.9em;
                 margin-left: 4px;
             }
@@ -207,6 +235,8 @@ public function enqueue_styles() {
         $tag_size = esc_attr($atts['tag_size']);
         $show_jump_nav = $atts['show_jump_nav'];
 
+        $this->enqueue_assets($show_jump_nav);
+
         $output = array();
 
         if ($show_jump_nav) {
@@ -218,7 +248,7 @@ public function enqueue_styles() {
         foreach ($grouped_tags as $letter => $letter_tags) {
             $letter_id = $this->get_letter_id($letter);
             $output[] = '<div class="atl-letter-section" id="' . esc_attr($letter_id) . '">';
-            $output[] = '<h2 class="atl-letter-heading" style="font-size: ' . $heading_size . ';">' . esc_html($letter) . '</h2>';
+            $output[] = '<h2 class="atl-letter-heading" tabindex="-1" style="font-size: ' . $heading_size . ';">' . esc_html($letter) . '</h2>';
             $output[] = '<div class="atl-tags-grid">';
 
             foreach ($letter_tags as $tag) {
@@ -236,8 +266,6 @@ public function enqueue_styles() {
 
         $output[] = '</div>';
 
-        // JS is enqueued via wp_enqueue_script in enqueue_styles() — no inline script needed
-
         return implode('', $output);
     }
 
@@ -248,21 +276,19 @@ public function enqueue_styles() {
             range('A', 'Z')
         );
 
-        $available_letters = array_keys($grouped_tags);
-
         $nav = array();
-        $nav[] = '<nav class="atl-jump-nav">';
+        $nav[] = '<nav class="atl-jump-nav" aria-label="' . esc_attr__('Jump to letter', 'alphabetical-tags-list') . '">';
         $nav[] = '<div class="atl-jump-nav-inner">';
 
         foreach ($all_letters as $letter) {
             $letter_id = $this->get_letter_id($letter);
-            $is_available = in_array($letter, $available_letters);
+            $is_available = isset($grouped_tags[$letter]);
             $class = $is_available ? 'atl-jump-link' : 'atl-jump-link disabled';
 
             if ($is_available) {
                 $nav[] = '<a href="#' . esc_attr($letter_id) . '" class="' . $class . '" data-letter="' . esc_attr($letter) . '">' . esc_html($letter) . '</a>';
             } else {
-                $nav[] = '<span class="' . $class . '">' . esc_html($letter) . '</span>';
+                $nav[] = '<span class="' . $class . '" aria-disabled="true">' . esc_html($letter) . '</span>';
             }
         }
 
@@ -290,7 +316,7 @@ public function enqueue_styles() {
         foreach ($tags as $tag) {
             $first_char = mb_substr($tag->name, 0, 1, 'UTF-8');
             $normalized_char = $this->normalize_character($first_char);
-            $first_letter = mb_strtoupper($normalized_char, 'UTF-8');
+            $first_letter = mb_strtoupper(mb_substr($normalized_char, 0, 1, 'UTF-8'), 'UTF-8');
 
             if (preg_match('/[A-Z]/i', $first_letter)) {
                 $group_key = $first_letter;
@@ -307,12 +333,15 @@ public function enqueue_styles() {
             $grouped[$group_key][] = $tag;
         }
 
-        uksort($grouped, function($a, $b) {
-            if ($a === '0-9' && $b !== '0-9') return -1;
-            if ($b === '0-9' && $a !== '0-9') return 1;
-            if ($a === '#' && $b !== '0-9') return -1;
-            if ($b === '#' && $a !== '0-9') return 1;
-            return strcmp($a, $b);
+        // Order: 0-9, then #, then A-Z (matches the jump navigation)
+        $rank = function($key) {
+            if ($key === '0-9') return 0;
+            if ($key === '#') return 1;
+            return 2;
+        };
+        uksort($grouped, function($a, $b) use ($rank) {
+            $diff = $rank($a) - $rank($b);
+            return $diff !== 0 ? $diff : strcmp($a, $b);
         });
 
         return $grouped;
@@ -324,6 +353,16 @@ public function enqueue_styles() {
      */
 	
     private function normalize_character($char) {
+        static $cache = array();
+
+        if (!isset($cache[$char])) {
+            $cache[$char] = $this->compute_normalized_character($char);
+        }
+
+        return $cache[$char];
+    }
+
+    private function compute_normalized_character($char) {
         // Strategy 1: Try Normalizer class (most reliable, requires intl extension)
         if (class_exists('Normalizer')) {
             // Decompose character (é → e + ́)
@@ -337,7 +376,7 @@ public function enqueue_styles() {
         }
         
         // Strategy 2: Manual character map (guaranteed consistent)
-        $char_map = array(
+        static $char_map = array(
             // Uppercase - Basic Latin with diacritics
             'À' => 'A', 'Á' => 'A', 'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A', 'Å' => 'A', 'Ā' => 'A', 'Ă' => 'A', 'Ą' => 'A',
             'Æ' => 'AE',

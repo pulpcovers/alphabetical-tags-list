@@ -1,102 +1,108 @@
 (function () {
+    var nav = document.querySelector('.atl-jump-nav');
+    var sections = document.querySelectorAll('.atl-letter-section');
+    var navLinks = document.querySelectorAll('.atl-jump-link:not(.disabled)');
+
+    if (!navLinks.length || !sections.length) return;
+
     var isScrolling = false;
-    var scrollTimeout;
+    var scrollFallbackTimeout;
+    var observer = null;
+    var hasScrollEnd = 'onscrollend' in window;
+
+    var linksByTarget = {};
+    navLinks.forEach(function (link) {
+        linksByTarget[link.getAttribute('href')] = link;
+    });
+
+    function setActive(link) {
+        navLinks.forEach(function (l) {
+            var isActive = l === link;
+            l.classList.toggle('active', isActive);
+            if (isActive) {
+                l.setAttribute('aria-current', 'true');
+            } else {
+                l.removeAttribute('aria-current');
+            }
+        });
+    }
+
+    function finishScrolling() {
+        clearTimeout(scrollFallbackTimeout);
+        isScrolling = false;
+    }
 
     // Smooth scroll for jump links
-    document.querySelectorAll('.atl-jump-link:not(.disabled)').forEach(function (link) {
+    navLinks.forEach(function (link) {
         link.addEventListener('click', function (e) {
             e.preventDefault();
-            var targetId = this.getAttribute('href').substring(1);
-            var targetElement = document.getElementById(targetId);
-            if (targetElement) {
-                isScrolling = true;
-                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            var target = document.getElementById(this.getAttribute('href').substring(1));
+            if (!target) return;
 
-                // Update active state immediately
-                document.querySelectorAll('.atl-jump-link').forEach(function (l) {
-                    l.classList.remove('active');
-                });
-                this.classList.add('active');
+            var reduceMotion = window.matchMedia &&
+                window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-                // Remove focus to prevent outline persistence
-                this.blur();
+            isScrolling = true;
+            target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+            setActive(this);
 
-                // Reset isScrolling flag after scroll completes
-                setTimeout(function () {
-                    isScrolling = false;
-                }, 1000);
+            // Keep the URL shareable and move keyboard focus to the section
+            if (window.history && history.replaceState) {
+                history.replaceState(null, '', this.getAttribute('href'));
             }
+            var heading = target.querySelector('.atl-letter-heading');
+            if (heading) heading.focus({ preventScroll: true });
+
+            // scrollend is exact where supported; the timer covers other browsers
+            // and the case where no scroll happens at all
+            clearTimeout(scrollFallbackTimeout);
+            scrollFallbackTimeout = setTimeout(finishScrolling, hasScrollEnd ? 1500 : 1000);
         });
     });
 
-    // Update active link based on scroll position
-    function updateActiveLink() {
-        if (isScrolling) return;
-
-        var sections = document.querySelectorAll('.atl-letter-section');
-        var navLinks = document.querySelectorAll('.atl-jump-link:not(.disabled)');
-
-        var navHeight = document.querySelector('.atl-jump-nav')?.offsetHeight || 0;
-        var adminBarHeight = 0;
-
-        if (window.innerWidth > 782) {
-            adminBarHeight = document.querySelector('#wpadminbar')?.offsetHeight || 0;
-        }
-
-        var offset = navHeight + adminBarHeight + 10;
-        var currentSection = null;
-
-        sections.forEach(function (section) {
-            var rect = section.getBoundingClientRect();
-            if (rect.top <= offset && rect.bottom > offset) {
-                currentSection = section;
-            }
-        });
-
-        if (!currentSection) {
-            var closestSection = null;
-            var closestDistance = Infinity;
-
-            sections.forEach(function (section) {
-                var rect = section.getBoundingClientRect();
-                if (rect.top < offset) {
-                    var distance = offset - rect.top;
-                    if (distance < closestDistance) {
-                        closestDistance = distance;
-                        closestSection = section;
-                    }
-                }
-            });
-
-            currentSection = closestSection;
-        }
-
-        if (currentSection) {
-            var id = currentSection.getAttribute('id');
-            navLinks.forEach(function (link) {
-                if (link.getAttribute('href') === '#' + id) {
-                    if (!link.classList.contains('active')) {
-                        navLinks.forEach(function (l) {
-                            l.classList.remove('active');
-                            l.blur();
-                        });
-                        link.classList.add('active');
-                    }
-                }
-            });
-        }
+    if (hasScrollEnd) {
+        window.addEventListener('scrollend', finishScrolling);
     }
 
-    window.addEventListener('scroll', function () {
-        clearTimeout(scrollTimeout);
-        scrollTimeout = setTimeout(updateActiveLink, 50);
-    }, { passive: true });
+    // Compute the viewport line below the sticky nav / admin bar
+    function getOffset() {
+        var navHeight = nav ? nav.offsetHeight : 0;
+        var adminBar = window.innerWidth > 782 ? document.getElementById('wpadminbar') : null;
+        return navHeight + (adminBar ? adminBar.offsetHeight : 0) + 10;
+    }
+
+    // A section is "current" while it crosses a 1px line at the offset, which
+    // replaces per-scroll getBoundingClientRect work on every section.
+    function observeSections() {
+        if (observer) observer.disconnect();
+
+        var offset = Math.round(getOffset());
+        var bottomMargin = Math.max(window.innerHeight - offset - 1, 0);
+
+        observer = new IntersectionObserver(function (entries) {
+            if (isScrolling) return;
+            entries.forEach(function (entry) {
+                if (!entry.isIntersecting) return;
+                var link = linksByTarget['#' + entry.target.id];
+                if (link) setActive(link);
+            });
+        }, {
+            rootMargin: '-' + offset + 'px 0px -' + bottomMargin + 'px 0px',
+            threshold: 0
+        });
+
+        sections.forEach(function (section) {
+            observer.observe(section);
+        });
+    }
+
+    if (!('IntersectionObserver' in window)) return;
+
+    observeSections();
 
     var resizeTimeout;
     window.addEventListener('resize', function () {
         clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(updateActiveLink, 100);
+        resizeTimeout = setTimeout(observeSections, 150);
     });
-
-    updateActiveLink();
 })();
